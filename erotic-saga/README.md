@@ -2,6 +2,10 @@
 
 An interactive quiz game with the ability to create characters and AI‑generated images.
 
+### 🌐 Live Demo
+- Create Eternal AI account and [get your API key](https://docs.eternalai.org/api)
+- Access the app: [Erotic Saga](https://margot-nonflagellate-hitchily.ngrok-free.dev/)
+
 ## 📋 Project Overview
 
 ### Tech Stack
