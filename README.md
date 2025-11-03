@@ -8,7 +8,7 @@ The included projects show how to:
 
 Each sample focuses on a different creative use case. Checkout [Eternal Agentic Services Documentation](https://docs.eternalai.org/api) here. 
 
-Before trying our demo, create an account and [get your API key](https://eternalai.org/api) here. 
+Before trying our demo, create Eternal AI account and [get your API key](https://eternalai.org/api) here. 
 ## Live Demos
 
 - [Story Teller](https://4ee1b8c0f986.ngrok-free.app/)
