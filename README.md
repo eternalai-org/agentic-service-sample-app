@@ -16,19 +16,19 @@ Each sample focuses on a different creative use case. Checkout [Eternal Agentic 
 
 ## Source code
 
-### [Playground](https://github.com/eternalai-org/eternalai-api-sample-app/tree/master/playground)
+### [Playground](https://github.com/eternalai-org/agentic-service-sample-app/tree/master/playground)
 A simple HTML-based interface to Chat with the AI, Generate and edit images  
 Users can quickly test EternalAI APIs by entering their API key.
 
-### [Story Teller](https://github.com/eternalai-org/eternalai-api-sample-app/tree/master/story-generator-node)
+### [Story Teller](https://github.com/eternalai-org/agentic-service-sample-app/tree/master/story-generator-node)
 A short story generator that produces illustrated stories using EternalAI.  
 Includes both text and image generation.
 
-### [Dream Tales](https://github.com/eternalai-org/eternalai-api-sample-app/tree/master/dream-oracle-dark-occult)
+### [Dream Tales](https://github.com/eternalai-org/agentic-service-sample-app/tree/master/dream-oracle-dark-occult)
 Transforms written dream descriptions into visual and animated interpretations.  
 Combines chat, image generation, and image-to-video conversion.
 
-### [Erotic Saga](https://github.com/eternalai-org/eternalai-api-sample-app/tree/master/erotic-saga)
+### [Erotic Saga](https://github.com/eternalai-org/agentic-service-sample-app/tree/master/erotic-saga)
 A creative roleplay game example powered by EternalAI, demonstrating conversational and visual generation features.
 
 
