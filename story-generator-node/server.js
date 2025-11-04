@@ -17,8 +17,8 @@ try {
   console.error('Failed to load app_config.json:', err.message);
 }
 
-app.use(express.json({ limit: '1mb' }));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 const dataDir = path.join(__dirname, 'data');
@@ -236,11 +236,27 @@ app.get('/api/story/:folder/content', async (req, res) => {
 // Proxy endpoint for story generation (streaming)
 app.post('/api/generate-story', async (req, res) => {
   try {
+    console.log('=== Story Generation Request ===');
+    console.log('Request headers:', req.headers);
+    console.log('Request body type:', typeof req.body);
+    console.log('Request body:', req.body);
+    console.log('Body keys:', Object.keys(req.body || {}));
+
     const { promptText } = req.body;
 
     if (!promptText) {
-      return res.status(400).json({ error: 'Missing promptText' });
+      console.error('Missing promptText in request');
+      console.error('Available body:', JSON.stringify(req.body));
+      return res.status(400).json({
+        error: 'Missing promptText',
+        receivedBody: req.body,
+        receivedKeys: Object.keys(req.body || {})
+      });
     }
+
+    console.log('Forwarding story generation request to API...');
+    console.log('API Endpoint:', appConfig.apiEndpoint);
+    console.log('Chat Agent:', appConfig.chatAgent);
 
     // Forward request to actual API with API key from config
     const response = await fetch(appConfig.apiEndpoint, {
