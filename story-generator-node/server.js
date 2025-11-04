@@ -7,11 +7,27 @@ const PORT = process.env.PORT || 3030;
 const __dirname = path.resolve();
 
 // Load config
-let appConfig = { apiKey: '', apiEndpoint: '', agent: '' };
+let appConfig = {
+  apiKey: '',
+  apiEndpoint: '',
+  imageEndpoint: '',
+  resultEndpoint: '',
+  chatAgent: '',
+  imageAgent: ''
+};
 try {
   const configPath = path.join(__dirname, 'app_config.json');
   if (fs.existsSync(configPath)) {
     appConfig = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+    console.log('✓ Config loaded successfully');
+    console.log('  - API Endpoint:', appConfig.apiEndpoint);
+    console.log('  - Image Endpoint:', appConfig.imageEndpoint);
+    console.log('  - Result Endpoint:', appConfig.resultEndpoint);
+    console.log('  - Chat Agent:', appConfig.chatAgent);
+    console.log('  - Image Agent:', appConfig.imageAgent);
+    console.log('  - API Key:', appConfig.apiKey ? '***' + appConfig.apiKey.slice(-4) : 'NOT SET');
+  } else {
+    console.warn('⚠ app_config.json not found. Please copy app_config.example.json to app_config.json and configure it.');
   }
 } catch (err) {
   console.error('Failed to load app_config.json:', err.message);
