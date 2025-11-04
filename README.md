@@ -13,7 +13,7 @@ Before trying our demo, create Eternal AI account and [get your API key](https:/
 
 - [Story Teller](https://4ee1b8c0f986.ngrok-free.app/)
 - [Dream Tales](https://39e2ecf874c0.ngrok-free.app/)
-- [Erotic Saga](https://margot-nonflagellate-hitchily.ngrok-free.dev/)
+- [Erotic Saga](https://2bf7f0308bcf.ngrok-free.app/)
 
 ## Source code
 
