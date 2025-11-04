@@ -21,6 +21,15 @@ try {
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// Middleware to block access to sensitive files
+app.use((req, res, next) => {
+    const blockedFiles = ['/app_config.json', '/app_config.example.json', '/package.json', '/package-lock.json'];
+    if (blockedFiles.includes(req.path)) {
+        return res.status(403).json({ error: 'Access forbidden' });
+    }
+    next();
+});
+
 // Serve static files from the current directory
 app.use(express.static(__dirname));
 
@@ -29,10 +38,9 @@ app.use(express.static(__dirname));
 app.post('/api/chat', async (req, res) => {
     try {
         const { messages, agent } = req.body;
-        const apiKey = req.headers.authorization?.split(' ')[1];
 
-        if (!apiKey) {
-            return res.status(401).json({ error: 'API key is missing' });
+        if (!appConfig.apiKey) {
+            return res.status(401).json({ error: 'API key is not configured on server' });
         }
 
         const fetch = (await import('node-fetch')).default;
@@ -40,7 +48,7 @@ app.post('/api/chat', async (req, res) => {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'x-api-key': apiKey
+                'x-api-key': appConfig.apiKey
             },
             body: JSON.stringify({
                 messages,
@@ -70,10 +78,9 @@ app.post('/api/chat', async (req, res) => {
 app.post('/api/generate-image', async (req, res) => {
     try {
         const { prompt } = req.body;
-        const apiKey = req.headers.authorization?.split(' ')[1];
 
-        if (!apiKey) {
-            return res.status(401).json({ error: 'API key is missing' });
+        if (!appConfig.apiKey) {
+            return res.status(401).json({ error: 'API key is not configured on server' });
         }
 
         const fetch = (await import('node-fetch')).default;
@@ -81,7 +88,7 @@ app.post('/api/generate-image', async (req, res) => {
             method: 'POST',
             headers: {
                 'accept': 'application/json',
-                'x-api-key': apiKey,
+                'x-api-key': appConfig.apiKey,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
@@ -113,10 +120,9 @@ app.post('/api/generate-image', async (req, res) => {
 app.get('/api/image-result', async (req, res) => {
     try {
         const { request_id } = req.query;
-        const apiKey = req.headers.authorization?.split(' ')[1];
 
-        if (!apiKey) {
-            return res.status(401).json({ error: 'API key is missing' });
+        if (!appConfig.apiKey) {
+            return res.status(401).json({ error: 'API key is not configured on server' });
         }
 
         const fetch = (await import('node-fetch')).default;
@@ -126,7 +132,7 @@ app.get('/api/image-result', async (req, res) => {
                 method: 'GET',
                 headers: {
                     'accept': 'application/json',
-                    'x-api-key': apiKey,
+                    'x-api-key': appConfig.apiKey,
                     'Content-Type': 'application/json'
                 }
             }

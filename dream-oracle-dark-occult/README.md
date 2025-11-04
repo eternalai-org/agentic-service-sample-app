@@ -1,12 +1,17 @@
-# Dream Tales - Dream Oracle Dark Occult
+# Dream Tales 
 
-A mystical web application that transforms written dream descriptions into visual and animated interpretations using AI-powered chat, image generation, and image-to-video conversion.
+This project provides example code demonstrating how to integrate and use the **[EternalAI Agentic API](https://eternalai.org/api)** in applications and games.
+The included projects show how to:
+- Connect and communicate with EternalAI agents
+- Generate and edit images
+- Create short videos and animations from text prompts
 
-## 🌐 Live Demo
-- Create Eternal AI account and [get your API key](https://docs.eternalai.org/api)
+About Dream Tales: A mystical web application that transforms written dream descriptions into visual and animated interpretations using AI-powered chat, image generation, and image-to-video conversion.
+
+## Live Demo
 - Access the app: [Dream Tale](https://39e2ecf874c0.ngrok-free.app/)
  
-## 📋 Project Overview
+## Technical Overview
 
 ### Tech Stack
 
@@ -22,9 +27,9 @@ A mystical web application that transforms written dream descriptions into visua
 3. **Dream Animation**: Transform static dream images into short video clips
 4. **Radial Visualizer**: Interactive visualization interface for dream exploration
 
-## 🚀 How to Run
+## How to Run
 
-### 📋 Prerequisites
+### Prerequisites
 
 - **Node.js** 18+ ([Download](https://nodejs.org/))
 - **Eternal AI API Key** ([Get yours here](https://docs.eternalai.org/api))
@@ -46,33 +51,32 @@ npm start
 
 Server will run at: `http://localhost:3030`
 
-✅ **Open browser:** `http://localhost:3030`
+**Open browser:** `http://localhost:3030`
 
 And then input Eternal AI API Key to use the app. 
 
 ---
 
-## 📁 Project Structure
+## ???? Project Structure
 
 ```
 dream-oracle-dark-occult/
-├── server.js                  # Express server with API proxies
-├── index.html                 # Main UI
-├── package.json               # Dependencies
-├── app_config.json            # API configuration (gitignored)
-├── app_config.example.json    # Example config template
-├── assets/                    # Static assets (images, fonts)
-├── scripts/
-│   ├── dreamTales.js          # Main dream interpretation logic
-│   ├── nightmare.js           # Nightmare theme/styling
-│   └── radialVisualizer.js    # Interactive radial visualization
+????????? server.js                  # Express server with API proxies
+????????? index.html                 # Main UI
+????????? package.json               # Dependencies
+????????? app_config.example.json    # Example config template
+????????? assets/                    # Static assets (images, fonts)
+????????? scripts/
+???   ????????? dreamTales.js          # Main dream interpretation logic, update your own prompts here
+???   ????????? nightmare.js           # Nightmare theme/styling
+???   ????????? radialVisualizer.js    # Interactive radial visualization
 ```
 
 ---
 
-## 📝 How to Use
+## How to Use
 
-### 🌙 Dream Interpretation Flow
+### Dream Interpretation Flow
 
 1. **Enter Your Dream**: Type or paste your dream description
 2. **AI Analysis**: The AI analyzes and interprets your dream symbolism
@@ -82,7 +86,7 @@ dream-oracle-dark-occult/
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 ### Server Settings
 
@@ -100,52 +104,4 @@ dream-oracle-dark-occult/
 
 ---
 
-## 🔧 Troubleshooting
-
-### Server doesn't start
-
-```bash
-# Check Node.js version (18+)
-node --version
-
-# Reinstall dependencies
-rm -rf node_modules package-lock.json
-npm install
-```
-
-### API requests fail
-
-- Verify your API key in `app_config.json`
-- Check your internet connection
-- Review browser console and server logs for error details
-
-### Images don't generate
-
-- Ensure you have a valid Eternal AI API key
-- Check that the image agent is properly configured
-- Some requests may take longer - wait for completion
-
----
-
-## 📦 Dependencies
-
-```json
-{
-  "dependencies": {
-    "express": "^4.18.2",
-    "node-fetch": "^3.3.0"
-  }
-}
-```
-
----
-
-## 🔐 Security Notes
-
-- `app_config.json` contains your API key - never commit this file
-- API key is sent from client (consider server-side storage for production)
-- Add rate limiting for production deployments
-
----
-
-Made with ❤️ using Eternal AI
+Made with ?????? using Eternal AI
