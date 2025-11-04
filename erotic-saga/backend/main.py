@@ -7,6 +7,7 @@ from typing import List
 import base64
 import os
 import requests
+import asyncio
 
 
 app = FastAPI(title="AI Millionaire Game")
@@ -187,7 +188,7 @@ async def upload(
 
     # Save questions JSON and character info first
     if validated_questions:
-        try:
+        try: 
             # Edit id to increase from 1
             for idx, q in enumerate(validated_questions, start=1):
                 q['id'] = idx
@@ -268,11 +269,15 @@ async def generate_questions_api(
         # Convert difficulties from FormData (strings) to integers
         difficulties_int = [int(d) for d in difficulties]
         
-        questions = generate_questions(
-            api_key=api_key,
-            topic=topic,
-            difficulties=difficulties_int,
-            num_questions=num_questions
+        # Run generate_questions in a separate thread to avoid blocking
+        loop = asyncio.get_event_loop()
+        questions = await loop.run_in_executor(
+            None,
+            generate_questions,
+            api_key,
+            topic,
+            difficulties_int,
+            num_questions
         )
         
         if questions:

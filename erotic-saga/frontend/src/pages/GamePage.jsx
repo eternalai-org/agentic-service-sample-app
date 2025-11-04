@@ -1,30 +1,32 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
+import { useIsMobile } from "../hooks/useIsMobile";
+import GamePageMobile from "./GamePageMobile";
 
 export default function GamePage() {
+  const isMobile = useIsMobile();
   const [qid, setQid] = useState(1);
   const [question, setQuestion] = useState(null);
   const [image, setImage] = useState(null);
   const [answer, setAnswer] = useState("");
-  const [isWin, setIsWin] = useState(false); // ✅ Add win state
+  const [isWin, setIsWin] = useState(false);
   const [showGameOver, setShowGameOver] = useState(false);
   const characterId = Number(localStorage.getItem("selectedCharacterId")) || 1;
   const [bg, setBg] = useState(null);
 
-  const fetchQuestion = async (id) => {
-    const form = new FormData();
-    form.append("character_id", characterId);
+  const fetchQuestion = useCallback(
+    async (id) => {
+      const form = new FormData();
+      form.append("character_id", characterId);
 
-    const res = await axios.post(`/api/question/${id}`, form);
-    setQuestion(res.data.question);
-    setImage(res.data.image);
-    setAnswer("");
-    setIsWin(false);
-  };
-
-  useEffect(() => {
-    fetchQuestion(1);
-  }, []);
+      const res = await axios.post(`/api/question/${id}`, form);
+      setQuestion(res.data.question);
+      setImage(res.data.image);
+      setAnswer("");
+      setIsWin(false);
+    },
+    [characterId]
+  );
 
   // Load default background
   useEffect(() => {
@@ -32,15 +34,23 @@ export default function GamePage() {
       try {
         const res = await axios.get("/api/default-background");
         setBg(res.data?.image || null);
-      } catch (err) {
-        console.warn("Failed to load default background", err);
+      } catch (e) {
+        console.warn("Failed to load default background", e);
       }
     })();
   }, []);
 
   useEffect(() => {
+    fetchQuestion(1);
+  }, [fetchQuestion]);
+
+  useEffect(() => {
     setAnswer("");
   }, [qid]);
+
+  if (isMobile) {
+    return <GamePageMobile />;
+  }
 
   const handleAnswer = async () => {
     const form = new FormData();
@@ -111,11 +121,17 @@ export default function GamePage() {
               textAlign: "center",
             }}
           >
-            <div style={{ fontSize: "2.2rem", fontWeight: 700, marginBottom: "12px" }}>
+            <div
+              style={{
+                fontSize: "2.2rem",
+                fontWeight: 700,
+                marginBottom: "12px",
+              }}
+            >
               Game Over
             </div>
             <div style={{ fontSize: "1.6rem", color: "#C0C0C0" }}>
-            You selected the wrong answer. Try again later!
+              You selected the wrong answer. Try again later!
             </div>
             <button
               onClick={() => (window.location.href = "/")}
@@ -164,6 +180,7 @@ export default function GamePage() {
           fontSize: "15px",
           fontWeight: "600",
           transition: "all 0.2s",
+          backgroundColor: "#FF0F87",
         }}
         onMouseEnter={(e) => {
           e.target.style.borderColor = "#FF0F87";
@@ -172,18 +189,19 @@ export default function GamePage() {
         }}
         onMouseLeave={(e) => {
           e.target.style.borderColor = "rgba(242, 242, 242, 0.12)";
-          e.target.style.background = "transparent";
+          e.target.style.background = "#FF0F87";
           e.target.style.color = "#F2F2F2";
         }}
       >
-        ⬅️ Back to Home
+        Back to Home
       </button>
 
       <div
         style={{
+          background: "#0a0a1a",
           backgroundColor: "#222",
           backgroundImage: bg ? `url(${bg})` : undefined,
-          backgroundSize: "full",
+          backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
           borderRadius: "12px",
@@ -218,7 +236,7 @@ export default function GamePage() {
               fontWeight: "700",
             }}
           >
-            🎉 You’ve completed all the questions! 🎉
+            You've completed all the questions!
           </div>
         ) : (
           <>
@@ -234,6 +252,15 @@ export default function GamePage() {
                 fontWeight: "600",
                 border: "1px solid #FF0F87",
                 boxShadow: "0 0 10px #FF004C",
+                width: "80vw",
+                maxWidth: "80%",
+                minWidth: "260px",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                marginLeft: "auto",
+                marginRight: "auto",
+                textAlign: "center",
               }}
             >
               {question.question}
@@ -246,6 +273,12 @@ export default function GamePage() {
                 gridTemplateColumns: "1fr 1fr",
                 gap: "0.7rem",
                 marginTop: "0.84rem",
+                justifyItems: "center",
+                width: "80vw",
+                maxWidth: "80%",
+                minWidth: "260px",
+                marginLeft: "auto",
+                marginRight: "auto",
               }}
             >
               {question.options.map((opt, i) => (
@@ -253,8 +286,11 @@ export default function GamePage() {
                   key={i}
                   onClick={() => setAnswer(opt)}
                   style={{
-                    backgroundColor: answer === opt ? "#FF0F87" : "rgba(20,20,20,0.8)",
-                    border: `1px solid ${answer === opt ? '#FF0F87' : '#F2F2F2'}`,
+                    backgroundColor:
+                      answer === opt ? "#FF0F87" : "rgba(20,20,20,0.8)",
+                    border: `1px solid ${
+                      answer === opt ? "#FF0F87" : "#F2F2F2"
+                    }`,
                     color: "#F2F2F2",
                     borderRadius: "4px",
                     padding: "0.56rem",
@@ -263,6 +299,8 @@ export default function GamePage() {
                     cursor: "pointer",
                     transition: "all 0.2s ease",
                     boxShadow: answer === opt ? "0 0 10px #FF004C" : undefined,
+                    width: "100%", // ensures full column width & neat alignment
+                    textAlign: "center", // center text inside button
                   }}
                 >
                   {opt}

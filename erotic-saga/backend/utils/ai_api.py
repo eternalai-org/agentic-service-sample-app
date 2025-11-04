@@ -227,7 +227,7 @@ Questions and answers must be in English.'''
         print(f"📤 Generating {num_questions} questions about '{topic}'...")
         
         # Send POST request with streaming
-        response = requests.post(AI_API_URL, headers=headers, json=payload, stream=True, timeout=300)
+        response = requests.post(AI_API_URL, headers=headers, json=payload, stream=True, timeout=90)
         response.raise_for_status()
 
         # Handle streaming response
