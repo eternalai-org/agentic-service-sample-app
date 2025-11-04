@@ -1,0 +1,8 @@
+{
+  "apiKey":"your_api_key",
+  "apiEndpoint": "https://agentic.eternalai.org/prompt",
+  "imageEndpoint": "https://agent-api.eternalai.org/prompt",
+  "resultEndpoint": "https://agent-api.eternalai.org/result",
+  "chatAgent": "uncensored-chat",
+  "imageAgent": "uncensored-imagine"
+}

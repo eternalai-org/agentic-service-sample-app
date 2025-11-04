@@ -102,6 +102,12 @@ dream-oracle-dark-occult/
 - **Streaming**: Supported for chat responses
 - **Timeout**: Varies by agent (typically 1-5 minutes)
 
+## 🔐 Security Notes
+
+- API keys can be stored in `app_config.json` (add to `.gitignore`)
+- No authentication required (add auth for production)
+- All origins accepted (configure CORS for production)
+
 ---
 
 Made with ?????? using Eternal AI

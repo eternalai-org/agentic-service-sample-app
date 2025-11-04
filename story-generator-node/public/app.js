@@ -3,28 +3,7 @@ const CONTENT_LEVELS = ['Safe / All ages','Mild mature','Explicit / 18+','Violen
 const GENRES = ['Action','Adventure','Thriller','Mystery','Comedy','Psychological','Tragedy','Survival'];
 const CHARS = ['Hero','Villain','Antihero','Child','Teen','Adult','Alien','Ordinary person','Chosen one'];
 
-// Load API config
-let apiConfig = { apiKey: '', apiEndpoint: '', agent: '' };
-
-async function loadConfig() {
-  try {
-    const response = await fetch('/api/config');
-    if (response.ok) {
-      const config = await response.json();
-      // just get apiEndpoint and agent
-      apiConfig.apiEndpoint = config.apiEndpoint;
-      apiConfig.agent = config.agent;
-    }
-  } catch (err) {
-    console.error('Failed to load API config:', err);
-  }
-
-  // Remove localStorage handling for apiKey everywhere (do not set, do not get, do not check storedApiKey)
-  // When making an API request (e.g., in generateStory or generateImagePrompt), get the key from document.getElementById('apiKeyInput').value ONLY
-  // If the API key is empty when attempting to make a request, display an error and do not send the request
-}
-
-loadConfig();
+// API config is managed on the backend - frontend doesn't need API key anymore
 
 const contentLevelEl = document.getElementById('contentLevel');
 const genresEl = document.getElementById('genres');
@@ -365,26 +344,13 @@ Return ONLY the image prompt in this format: Subject + Action + Style + Context
 Make it detailed and cinematic. Focus on visual elements only.`;
 
   try {
-    const response = await fetch(apiConfig.apiEndpoint, {
+    const response = await fetch('/api/generate-image-prompt', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': document.getElementById('apiKeyInput').value // Get key from input field
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        messages: [
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: promptText
-              }
-            ]
-          }
-        ],
-        agent: 'uncensored-chat',
-        stream: true
+        promptText: promptText
       })
     });
 
@@ -515,30 +481,14 @@ Make it detailed and cinematic. Focus on visual elements only.`;
 // Generate image using API with async polling (like playground)
 async function generateImageFromPrompt(prompt) {
   try {
-    // Use the same endpoints as playground
-    const POST_URL = "https://agent-api.eternalai.org/prompt";
-    
-    // Submit image generation request
-    const response = await fetch(POST_URL, {
+    // Submit image generation request via backend proxy
+    const response = await fetch('/api/generate-image', {
       method: 'POST',
       headers: {
-        'accept': 'application/json',
-        'x-api-key': document.getElementById('apiKeyInput').value, // Get key from input field
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        messages: [
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: prompt
-              }
-            ]
-          }
-        ],
-        agent: 'uncensored-imagine'
+        prompt: prompt
       })
     });
 
@@ -581,13 +531,10 @@ async function pollForImageResult(requestId, progressElement) {
   
   while (attempts < maxAttempts) {
     try {
-      // Use the same result endpoint as playground
-      const GET_URL = "https://agent-api.eternalai.org/result";
-      const response = await fetch(`${GET_URL}?agent=uncensored-imagine&request_id=${requestId}`, {
+      // Use backend proxy to get image result
+      const response = await fetch(`/api/image-result?request_id=${requestId}`, {
         method: 'GET',
         headers: {
-          'accept': 'application/json',
-          'x-api-key': document.getElementById('apiKeyInput').value, // Get key from input field
           'Content-Type': 'application/json'
         }
       });
@@ -710,30 +657,14 @@ async function pollForImageResult(requestId, progressElement) {
 // Generate image with individual progress tracking
 async function generateImageFromPromptWithProgress(prompt, progressElement) {
   try {
-    // Use the same endpoints as playground
-    const POST_URL = "https://agent-api.eternalai.org/prompt";
-    
-    // Submit image generation request
-    const response = await fetch(POST_URL, {
+    // Submit image generation request via backend proxy
+    const response = await fetch('/api/generate-image', {
       method: 'POST',
       headers: {
-        'accept': 'application/json',
-        'x-api-key': document.getElementById('apiKeyInput').value, // Get key from input field
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        messages: [
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: prompt
-              }
-            ]
-          }
-        ],
-        agent: 'uncensored-imagine'
+        prompt: prompt
       })
     });
 
@@ -1240,12 +1171,18 @@ function updateProgressElement(element, requestId, status, progress, queueInfo) 
 // Generate story using API with streaming
 async function generateStory() {
   const statusEl = document.getElementById('generationStatus');
-  statusEl.textContent = 'Generating your story...';
   statusEl.style.color = 'var(--accent)';
 
   // Clear editor
   storyEditor.innerHTML = '';
   document.getElementById('wordCount').textContent = '0 words';
+
+  // Start animated loading text
+  let dotCount = 0;
+  const loadingInterval = setInterval(() => {
+    dotCount = (dotCount + 1) % 4;
+    statusEl.textContent = 'Generating your story' + '.'.repeat(dotCount);
+  }, 500);
 
   try {
     // Calculate target word count
@@ -1268,26 +1205,13 @@ Story Configuration:
 
 Please write a complete, engaging story that follows these parameters.`;
 
-    const response = await fetch(apiConfig.apiEndpoint, {
+    const response = await fetch('/api/generate-story', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': document.getElementById('apiKeyInput').value // Get key from input field
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        messages: [
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: promptText
-              }
-            ]
-          }
-        ],
-        agent: apiConfig.agent,
-        stream: true
+        promptText: promptText
       })
     });
 
@@ -1305,6 +1229,7 @@ Please write a complete, engaging story that follows these parameters.`;
       const { done, value } = await reader.read();
 
       if (done) {
+        clearInterval(loadingInterval);
         statusEl.textContent = '✓ Story generated successfully';
         statusEl.style.color = 'var(--green)';
         break;
@@ -1398,6 +1323,7 @@ Please write a complete, engaging story that follows these parameters.`;
     }
 
   } catch (error) {
+    clearInterval(loadingInterval);
     console.error('Generation error:', error);
     statusEl.textContent = '✗ Error generating story: ' + error.message;
     statusEl.style.color = 'var(--orange)';

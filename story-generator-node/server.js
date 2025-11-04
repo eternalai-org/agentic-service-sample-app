@@ -233,12 +233,218 @@ app.get('/api/story/:folder/content', async (req, res) => {
   }
 });
 
-// Serve config to frontend
-app.get('/api/config', (req, res) => {
-  res.json({
-    apiEndpoint: appConfig.apiEndpoint,
-    agent: appConfig.agent
-  });
+// Proxy endpoint for story generation (streaming)
+app.post('/api/generate-story', async (req, res) => {
+  try {
+    const { promptText } = req.body;
+
+    if (!promptText) {
+      return res.status(400).json({ error: 'Missing promptText' });
+    }
+
+    // Forward request to actual API with API key from config
+    const response = await fetch(appConfig.apiEndpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': appConfig.apiKey
+      },
+      body: JSON.stringify({
+        messages: [
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'text',
+                text: promptText
+              }
+            ]
+          }
+        ],
+        agent: appConfig.chatAgent,
+        stream: true
+      })
+    });
+
+    if (!response.ok) {
+      return res.status(response.status).json({ error: 'API request failed' });
+    }
+
+    // Set streaming headers
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
+    // Stream the response back to client using ReadableStream
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        // Forward the chunk to the client
+        res.write(decoder.decode(value, { stream: true }));
+      }
+      res.end();
+    } catch (streamErr) {
+      console.error('Streaming error:', streamErr);
+      res.end();
+    }
+
+  } catch (err) {
+    console.error('Story generation error:', err);
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Server error' });
+    }
+  }
+});
+
+// Proxy endpoint for image prompt generation (streaming)
+app.post('/api/generate-image-prompt', async (req, res) => {
+  try {
+    const { promptText } = req.body;
+
+    if (!promptText) {
+      return res.status(400).json({ error: 'Missing promptText' });
+    }
+
+    // Forward request to actual API with API key from config
+    const response = await fetch(appConfig.apiEndpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': appConfig.apiKey
+      },
+      body: JSON.stringify({
+        messages: [
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'text',
+                text: promptText
+              }
+            ]
+          }
+        ],
+        agent: appConfig.chatAgent,
+        stream: true
+      })
+    });
+
+    if (!response.ok) {
+      return res.status(response.status).json({ error: 'API request failed' });
+    }
+
+    // Set streaming headers
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
+    // Stream the response back to client using ReadableStream
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        // Forward the chunk to the client
+        res.write(decoder.decode(value, { stream: true }));
+      }
+      res.end();
+    } catch (streamErr) {
+      console.error('Streaming error:', streamErr);
+      res.end();
+    }
+
+  } catch (err) {
+    console.error('Image prompt generation error:', err);
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Server error' });
+    }
+  }
+});
+
+// Proxy endpoint for image generation
+app.post('/api/generate-image', async (req, res) => {
+  try {
+    const { prompt } = req.body;
+
+    if (!prompt) {
+      return res.status(400).json({ error: 'Missing prompt' });
+    }
+
+    // Forward request to actual API with API key from config
+    const response = await fetch(appConfig.imageEndpoint, {
+      method: 'POST',
+      headers: {
+        'accept': 'application/json',
+        'x-api-key': appConfig.apiKey,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        messages: [
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'text',
+                text: prompt
+              }
+            ]
+          }
+        ],
+        agent: appConfig.imageAgent
+      })
+    });
+
+    if (!response.ok) {
+      return res.status(response.status).json({ error: 'API request failed' });
+    }
+
+    const data = await response.json();
+    return res.json(data);
+
+  } catch (err) {
+    console.error('Image generation error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Proxy endpoint for image result polling
+app.get('/api/image-result', async (req, res) => {
+  try {
+    const { request_id } = req.query;
+
+    if (!request_id) {
+      return res.status(400).json({ error: 'Missing request_id' });
+    }
+
+    // Forward request to actual API with API key from config
+    const response = await fetch(`${appConfig.resultEndpoint}?agent=${appConfig.imageAgent}&request_id=${request_id}`, {
+      method: 'GET',
+      headers: {
+        'accept': 'application/json',
+        'x-api-key': appConfig.apiKey,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      return res.status(response.status).json({ error: 'API request failed' });
+    }
+
+    const data = await response.json();
+    return res.json(data);
+
+  } catch (err) {
+    console.error('Image result polling error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 // Serve the creator page at /creator

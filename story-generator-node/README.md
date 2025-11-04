@@ -1,13 +1,18 @@
 # Story Teller - Interactive Story Generator
 
-An interactive web application that generates illustrated stories using EternalAI's text and image generation capabilities. 
-Create captivating narratives with AI-generated text and accompanying visuals.
+This project provides example code demonstrating how to integrate and use the **[EternalAI Agentic API](https://eternalai.org/api)** in applications and games.
+The included projects show how to:
+- Connect and communicate with EternalAI agents
+- Generate and edit images
+
+Story Teller - An interactive web application that crafts illustrated stories using EternalAI's text and image generation features. Compose engaging narratives with AI-generated text and stunning visuals. 
+- In reader mode, scroll through stories and immerse yourself in the experience; 
+- in creator mode, unleash your creativity and let your imagination soar endlessly.
 
 ## 🌐 Live Demo
-- Create Eternal AI account and [get your API key](https://docs.eternalai.org/api)
 - Access the app: [Story Teller](https://4ee1b8c0f986.ngrok-free.app/)
 
-## 📋 Project Overview
+## 📋 Technical Overview
 
 ### Tech Stack
 
@@ -50,7 +55,7 @@ Server will run at: `http://localhost:3030`
 
 ✅ **Reader Mode** `http://localhost:3030`
 
-### Step 3: Input API key to create new story
+### Step 3: Create new story
 
 ✅ **Creator Mode** `http://localhost:3030/creator`
 
@@ -172,65 +177,11 @@ Files are saved in: `/data/story_{timestamp}/`
 - **Request Format**: Standard chat API format
 - **Image Generation**: Supports image generation agents
 
----
-
-## 🔧 Troubleshooting
-
-### Server doesn't start
-
-```bash
-# Check Node.js version (18+)
-node --version
-
-# Reinstall dependencies
-rm -rf node_modules package-lock.json
-npm install
-```
-
-### API requests fail
-
-- Verify your API key is correct
-- Check your internet connection
-- Review browser console for error messages
-- Check server logs in the terminal
-
-### Stories don't save
-
-- Ensure the server has write permissions
-- Check that the `/data` directory can be created
-- Review server console for error messages
-
----
-
-## 📦 Dependencies
-
-```json
-{
-  "dependencies": {
-    "archiver": "^7.0.0",
-    "express": "^4.19.2"
-  }
-}
-```
-
----
-
 ## 🔐 Security Notes
 
 - API keys can be stored in `app_config.json` (add to `.gitignore`)
-- API keys entered in UI are not persisted server-side
 - No authentication required (add auth for production)
 - All origins accepted (configure CORS for production)
-
----
-
-## 💡 Tips
-
-- Use descriptive prompts for better AI-generated content
-- Experiment with different AI agents for varied results
-- Keep story chapters concise for better generation quality
-- Export to markdown for easy sharing and formatting
-- Backup your `/data` folder regularly
 
 ---
 
