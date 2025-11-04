@@ -274,6 +274,14 @@ app.post('/api/generate-story', async (req, res) => {
     console.log('API Endpoint:', appConfig.apiEndpoint);
     console.log('Chat Agent:', appConfig.chatAgent);
 
+    // Validate API key is configured
+    if (!appConfig.apiKey || appConfig.apiKey === 'your_api_key') {
+      console.error('API key not configured!');
+      return res.status(500).json({
+        error: 'API key not configured on server. Please set apiKey in app_config.json'
+      });
+    }
+
     // Forward request to actual API with API key from config
     const response = await fetch(appConfig.apiEndpoint, {
       method: 'POST',
@@ -299,7 +307,14 @@ app.post('/api/generate-story', async (req, res) => {
     });
 
     if (!response.ok) {
-      return res.status(response.status).json({ error: 'API request failed' });
+      console.error('API request failed with status:', response.status);
+      const errorText = await response.text();
+      console.error('API error response:', errorText);
+      return res.status(response.status).json({
+        error: 'API request failed',
+        status: response.status,
+        message: errorText
+      });
     }
 
     // Set streaming headers
