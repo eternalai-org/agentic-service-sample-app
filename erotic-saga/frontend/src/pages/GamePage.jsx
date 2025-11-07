@@ -4,6 +4,14 @@ import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "../hooks/useIsMobile";
 import GamePageMobile from "./GamePageMobile";
 
+// Font size system: 4 levels
+const FONT_SIZES = {
+  xs: "12px",   // Level 1: Small text, hints, captions
+  sm: "14px",   // Level 2: Body text, small buttons
+  md: "16px",   // Level 3: Main body text, buttons
+  lg: "24px",   // Level 4: Headings, large titles
+};
+
 export default function GamePage() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -101,6 +109,7 @@ export default function GamePage() {
         alignItems: "center",
         justifyContent: "center",
         overflow: "auto",
+        fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
       }}
     >
       {showGameOver && (
@@ -156,7 +165,7 @@ export default function GamePage() {
                 border: "1px solid #FF0F87",
                 backgroundColor: "#FF0F87",
                 color: "#F2F2F2",
-                fontSize: "16px",
+                fontSize: FONT_SIZES.md,
                 fontWeight: "600",
                 cursor: "pointer",
                 boxShadow: "0 4px 16px rgba(255, 0, 76, 0.4)",
@@ -224,7 +233,7 @@ export default function GamePage() {
           padding: "10px 20px",
           borderRadius: "999px",
           cursor: "pointer",
-          fontSize: "15px",
+          fontSize: FONT_SIZES.sm,
           fontWeight: "600",
           transition: "all 0.2s",
           backgroundColor: "#FF0F87",
@@ -382,7 +391,7 @@ export default function GamePage() {
                 border: "1px solid #FF0F87",
                 backgroundColor: "#FF0F87",
                 color: "#F2F2F2",
-                fontSize: "16px",
+                fontSize: FONT_SIZES.md,
                 fontWeight: "600",
                 cursor:
                   !answer || wrongAnswers.includes(answer)

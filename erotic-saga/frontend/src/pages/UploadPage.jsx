@@ -2,6 +2,14 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
+// Font size system: 4 levels
+const FONT_SIZES = {
+  xs: "12px", // Level 1: Small text, hints, captions
+  sm: "14px", // Level 2: Body text, small buttons
+  md: "16px", // Level 3: Main body text, buttons
+  lg: "24px", // Level 4: Headings, large titles
+};
+
 export default function UploadPage() {
   const navigate = useNavigate();
 
@@ -16,7 +24,7 @@ export default function UploadPage() {
   const [showSuggestions, setShowSuggestions] = useState(Array(4).fill(false));
 
   // New states for questions mode
-  const [mode, setMode] = useState("prompts"); // "prompts" or "questions"
+  const [mode, setMode] = useState("images"); // "images" or "questions"
   const [topic, setTopic] = useState("");
   const [difficulties, setDifficulties] = useState(Array(4).fill(1));
   const [generatedQuestions, setGeneratedQuestions] = useState(null);
@@ -126,6 +134,14 @@ export default function UploadPage() {
       localStorage.setItem("uploadApiKey", apiKey);
     }
   }, [apiKey]);
+
+  // Show welcome modal on mount if user hasn't seen it
+  React.useEffect(() => {
+    const hasSeenWelcome = localStorage.getItem("hasSeenUploadWelcome");
+    if (!hasSeenWelcome) {
+      setShowWelcomeModal(true);
+    }
+  }, []);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -326,29 +342,29 @@ export default function UploadPage() {
         headers: { "Content-Type": "multipart/form-data" },
       });
       console.log("✅ Upload success:", res.data);
-      
+
       // Save current API key before resetting
       const currentApiKey = apiKey;
-      
+
       // Reset all form fields except API key
       setCharacterName("");
       setImage(null);
       setImagePreview(null);
       setPromptCount(4);
       setPrompts(Array(4).fill(""));
-      setMode("prompts");
+      setMode("images");
       setTopic("");
       setDifficulties(Array(4).fill(1));
       setGeneratedQuestions(null);
       setHasSwitchedToQuestions(false);
       setShowSuggestions(Array(4).fill(false));
-      
+
       // Restore API key
       setApiKey(currentApiKey);
-      
+
       // Show success modal
       setShowSuccessModal(true);
-      
+
       // Close success modal after 2 seconds (stay on page)
       setTimeout(() => {
         setShowSuccessModal(false);
@@ -399,6 +415,8 @@ export default function UploadPage() {
           justifyContent: "space-between",
           alignItems: "flex-start",
           position: "relative",
+          fontFamily:
+            '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
         }}
       >
         {/* Top Banner Link */}
@@ -418,7 +436,7 @@ export default function UploadPage() {
             background: "linear-gradient(135deg, #FF0F87 0%, #ff2b9e 100%)",
             color: "#FFFFFF",
             textDecoration: "none",
-            fontSize: "14px",
+            fontSize: FONT_SIZES.sm,
             fontWeight: "600",
             zIndex: 1001,
             boxShadow: "0 2px 8px rgba(255, 15, 135, 0.3)",
@@ -486,40 +504,86 @@ export default function UploadPage() {
             Back to Home
           </button>
 
-          <button
-            onClick={() => setShowAdminLogin(true)}
+          <div
             style={{
               position: "absolute",
               top: "60px",
               right: "20px",
-              background: "#FF0F87",
-              border: "1px solid #FF0F87",
-              color: "#fff",
-              padding: "10px 20px",
-              borderRadius: "6px",
-              cursor: "pointer",
-              fontSize: "14px",
-              fontWeight: "600",
-              boxShadow: "0 4px 16px rgba(255, 0, 76, 0.4)",
-              transition: "all 0.2s",
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.background = "#ff2b9e";
-              e.target.style.transform = "translateY(-2px)";
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.background = "#FF0F87";
-              e.target.style.transform = "translateY(0)";
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
             }}
           >
-            Admin Login
-          </button>
+            <button
+              type="button"
+              onClick={() => setShowWelcomeModal(true)}
+              style={{
+                width: "32px",
+                height: "32px",
+                borderRadius: "50%",
+                background: "rgba(255, 15, 135, 0.2)",
+                border: "1px solid rgba(255, 15, 135, 0.5)",
+                color: "#FF0F87",
+                fontSize: FONT_SIZES.md,
+                fontWeight: "600",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transition: "all 0.2s",
+                boxShadow: "0 2px 8px rgba(255, 15, 135, 0.3)",
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.background = "#FF0F87";
+                e.target.style.color = "#fff";
+                e.target.style.transform = "scale(1.1)";
+                e.target.style.boxShadow = "0 4px 12px rgba(255, 15, 135, 0.5)";
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = "rgba(255, 15, 135, 0.2)";
+                e.target.style.color = "#FF0F87";
+                e.target.style.transform = "scale(1)";
+                e.target.style.boxShadow = "0 2px 8px rgba(255, 15, 135, 0.3)";
+              }}
+            >
+              ?
+            </button>
+            <button
+              onClick={() => setShowAdminLogin(true)}
+              style={{
+                background: "#FF0F87",
+                border: "1px solid #FF0F87",
+                color: "#fff",
+                padding: "10px 20px",
+                borderRadius: "6px",
+                cursor: "pointer",
+                fontSize: FONT_SIZES.sm,
+                fontWeight: "600",
+                boxShadow: "0 4px 16px rgba(255, 0, 76, 0.4)",
+                transition: "all 0.2s",
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.background = "#ff2b9e";
+                e.target.style.transform = "translateY(-2px)";
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = "#FF0F87";
+                e.target.style.transform = "translateY(0)";
+              }}
+            >
+              Admin Login
+            </button>
+          </div>
 
           <h1
             style={{
               marginBottom: "1.4rem",
-              fontSize: "49px",
-              color: "#FFFFFF",
+              fontSize: "48px",
+              background:
+                "linear-gradient(90deg, #9D4EDD 0%, #FF0F87 50%, #FF6B35 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
             }}
           >
             Erotic Saga
@@ -541,7 +605,7 @@ export default function UploadPage() {
               <h3
                 style={{
                   margin: 0,
-                  fontSize: "18px",
+                  fontSize: FONT_SIZES.sm,
                   fontWeight: "bold",
                   color: "#fff",
                 }}
@@ -553,7 +617,7 @@ export default function UploadPage() {
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{
-                  fontSize: "14px",
+                  fontSize: FONT_SIZES.sm,
                   color: "#FF0F87",
                   textDecoration: "none",
                   transition: "all 0.2s",
@@ -581,7 +645,7 @@ export default function UploadPage() {
                 marginBottom: "20px",
                 padding: "5.6px",
                 width: "100%",
-                fontSize: "16.8px",
+                fontSize: FONT_SIZES.md,
                 borderRadius: "6px",
                 border: "1px solid #FF0F87",
                 background: "rgba(20,20,20,0.8)",
@@ -594,7 +658,7 @@ export default function UploadPage() {
             <h3
               style={{
                 marginBottom: "8px",
-                fontSize: "14px",
+                fontSize: FONT_SIZES.sm,
                 color: "#fff",
                 fontWeight: "500",
               }}
@@ -611,7 +675,7 @@ export default function UploadPage() {
                 marginBottom: "20px",
                 padding: "5.6px",
                 width: "100%",
-                fontSize: "16.8px",
+                fontSize: FONT_SIZES.md,
                 borderRadius: "6px",
                 border: "1px solid #FF0F87",
                 background: "rgba(20,20,20,0.8)",
@@ -624,7 +688,7 @@ export default function UploadPage() {
             <h3
               style={{
                 marginBottom: "8px",
-                fontSize: "14px",
+                fontSize: FONT_SIZES.sm,
                 color: "#fff",
                 fontWeight: "500",
               }}
@@ -663,7 +727,7 @@ export default function UploadPage() {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    fontSize: "20px",
+                    fontSize: FONT_SIZES.lg,
                     transition: "all 0.2s",
                   }}
                   onMouseEnter={(e) => {
@@ -768,7 +832,7 @@ export default function UploadPage() {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        fontSize: "24px",
+                        fontSize: FONT_SIZES.lg,
                         fontWeight: "bold",
                         border: "2px solid rgba(255, 255, 255, 0.3)",
                         boxShadow: "0 2px 8px rgba(255, 15, 135, 0.3)",
@@ -781,7 +845,7 @@ export default function UploadPage() {
                 <div
                   style={{
                     marginBottom: "8px",
-                    fontSize: "16px",
+                    fontSize: FONT_SIZES.md,
                     fontWeight: "600",
                     color: "#fff",
                   }}
@@ -790,7 +854,7 @@ export default function UploadPage() {
                 </div>
                 <div
                   style={{
-                    fontSize: "13px",
+                    fontSize: FONT_SIZES.xs,
                     color: "rgba(255, 255, 255, 0.5)",
                   }}
                 >
@@ -833,9 +897,9 @@ export default function UploadPage() {
           >
             <button
               type="button"
-              onClick={() => setMode("prompts")}
+              onClick={() => setMode("images")}
               style={{
-                color: mode === "prompts" ? "#fff" : "rgba(242, 242, 242, 0.6)",
+                color: mode === "images" ? "#fff" : "rgba(242, 242, 242, 0.6)",
                 textDecoration: "none",
                 fontSize: "15px",
                 fontWeight: "600",
@@ -845,18 +909,18 @@ export default function UploadPage() {
                 position: "relative",
                 zIndex: 1,
                 background:
-                  mode === "prompts"
+                  mode === "images"
                     ? "linear-gradient(135deg, #FF0F87 0%, #ff2b9e 100%)"
                     : "transparent",
                 border: "none",
                 cursor: "pointer",
                 boxShadow:
-                  mode === "prompts"
+                  mode === "images"
                     ? "0 4px 12px rgba(255, 15, 135, 0.4)"
                     : "none",
               }}
             >
-              Prompts
+              Images
             </button>
 
             <button
@@ -896,12 +960,14 @@ export default function UploadPage() {
             style={{
               width: "100%",
               marginTop: "14px",
-              fontSize: "20px",
+              fontSize: FONT_SIZES.md,
               color: "#fff",
               fontWeight: "bold",
             }}
           >
-            Enter the number of prompts (= questions)
+            {mode === "images"
+              ? "Number of generating image"
+              : "Number of questions"}
           </h2>
 
           <form
@@ -919,7 +985,7 @@ export default function UploadPage() {
                 marginBottom: "7px",
                 padding: "5.6px",
                 width: "100%",
-                fontSize: "16.8px",
+                fontSize: FONT_SIZES.md,
                 borderRadius: "6px",
                 border: "1px solid #FF0F87",
                 background: "rgba(20,20,20,0.8)",
@@ -928,21 +994,34 @@ export default function UploadPage() {
               }}
             />
 
-            {/* Prompts Mode */}
-            {mode === "prompts" && (
+            {/* Images Mode */}
+            {mode === "images" && (
               <>
                 <h4
                   style={{
                     width: "100%",
                     marginTop: "16px",
-                    fontSize: "14px",
+                    marginBottom: "4px",
+                    fontSize: FONT_SIZES.md,
+                    fontWeight: "600",
                     color: "#fff",
-                    fontWeight: "bold",
+                  }}
+                >
+                  Generating image
+                </h4>
+                <p
+                  style={{
+                    width: "100%",
+                    marginTop: "0px",
+                    marginBottom: "16px",
+                    fontSize: FONT_SIZES.xs,
+                    color: "rgba(255, 255, 255, 0.5)",
+                    lineHeight: "1.4",
                   }}
                 >
                   Each prompt generates a reward image, unlocked by answering
                   questions in order.
-                </h4>
+                </p>
 
                 {prompts.map((p, i) => (
                   <div
@@ -969,7 +1048,7 @@ export default function UploadPage() {
                         style={{
                           flex: 1,
                           padding: "5.6px",
-                          fontSize: "16.8px",
+                          fontSize: FONT_SIZES.md,
                           borderRadius: "6px",
                           border: "1px solid #FF0F87",
                           background: "rgba(20,20,20,0.8)",
@@ -998,7 +1077,7 @@ export default function UploadPage() {
                             borderRadius: "6px",
                             color: "#F2F2F2",
                             cursor: "pointer",
-                            fontSize: "12.6px",
+                            fontSize: FONT_SIZES.xs,
                             whiteSpace: "nowrap",
                             boxShadow: showSuggestions[i]
                               ? "0 0 10px #FF004C"
@@ -1040,7 +1119,7 @@ export default function UploadPage() {
                             style={{
                               padding: "7px",
                               cursor: "pointer",
-                              fontSize: "12.6px",
+                              fontSize: FONT_SIZES.xs,
                               borderBottom:
                                 idx < promptSuggestions.length - 1
                                   ? "1px solid #444"
@@ -1072,7 +1151,7 @@ export default function UploadPage() {
                   style={{
                     marginTop: "7px",
                     marginBottom: "5.6px",
-                    fontSize: "14px",
+                    fontSize: FONT_SIZES.sm,
                   }}
                 >
                   Topic for Questions
@@ -1086,7 +1165,7 @@ export default function UploadPage() {
                     marginBottom: "10.5px",
                     padding: "5.6px",
                     width: "100%",
-                    fontSize: "14px",
+                    fontSize: FONT_SIZES.sm,
                     borderRadius: "6px",
                     border: "1px solid #FF0F87",
                     background: "rgba(20,20,20,0.8)",
@@ -1100,7 +1179,7 @@ export default function UploadPage() {
                   style={{
                     marginTop: "7px",
                     marginBottom: "5.6px",
-                    fontSize: "14px",
+                    fontSize: FONT_SIZES.sm,
                   }}
                 >
                   Difficulty Levels (1-10)
@@ -1129,7 +1208,7 @@ export default function UploadPage() {
                       style={{
                         width: "56px",
                         padding: "5.6px",
-                        fontSize: "12.6px",
+                        fontSize: FONT_SIZES.xs,
                         borderRadius: "6px",
                         border: "1px solid #FF0F87",
                         background: "rgba(20,20,20,0.8)",
@@ -1145,7 +1224,7 @@ export default function UploadPage() {
                       style={{
                         flex: 1,
                         padding: "5.6px",
-                        fontSize: "12.6px",
+                        fontSize: FONT_SIZES.xs,
                         borderRadius: "6px",
                         border: "1px solid #FF0F87",
                         background: "#1f1f2e",
@@ -1183,7 +1262,7 @@ export default function UploadPage() {
                       generatingQuestions || !topic || !apiKey
                         ? "not-allowed"
                         : "pointer",
-                    fontSize: "16px",
+                    fontSize: FONT_SIZES.md,
                     fontWeight: "600",
                     width: "100%",
                     boxShadow:
@@ -1232,7 +1311,7 @@ export default function UploadPage() {
                     <h3
                       style={{
                         margin: 0,
-                        fontSize: "16px",
+                        fontSize: FONT_SIZES.md,
                         fontWeight: "600",
                         color: "#fff",
                       }}
@@ -1248,7 +1327,7 @@ export default function UploadPage() {
                         border: "1px solid #FF0F87",
                         borderRadius: "8px",
                         color: "#FF0F87",
-                        fontSize: "14px",
+                        fontSize: FONT_SIZES.sm,
                         fontWeight: "600",
                         cursor: "pointer",
                         transition: "all 0.2s",
@@ -1305,7 +1384,7 @@ export default function UploadPage() {
                           >
                             <div
                               style={{
-                                fontSize: "14px",
+                                fontSize: FONT_SIZES.sm,
                                 fontWeight: "600",
                                 color: "#FF0F87",
                               }}
@@ -1321,7 +1400,7 @@ export default function UploadPage() {
                                 border: "1px solid rgba(255, 0, 0, 0.3)",
                                 borderRadius: "6px",
                                 color: "#ff4444",
-                                fontSize: "12px",
+                                fontSize: FONT_SIZES.xs,
                                 fontWeight: "600",
                                 cursor: "pointer",
                                 transition: "all 0.2s",
@@ -1354,7 +1433,7 @@ export default function UploadPage() {
                               width: "97%",
                               padding: "12px",
                               marginBottom: "16px",
-                              fontSize: "14px",
+                              fontSize: FONT_SIZES.sm,
                               borderRadius: "8px",
                               border: "1px solid rgba(255, 15, 135, 0.2)",
                               background: "rgba(255, 255, 255, 0.04)",
@@ -1419,7 +1498,7 @@ export default function UploadPage() {
                                   style={{
                                     flex: 1,
                                     padding: "10px",
-                                    fontSize: "14px",
+                                    fontSize: FONT_SIZES.sm,
                                     borderRadius: "8px",
                                     border: "1px solid rgba(255, 15, 135, 0.2)",
                                     background: "rgba(255, 255, 255, 0.04)",
@@ -1453,7 +1532,7 @@ export default function UploadPage() {
                         padding: "20px",
                         textAlign: "center",
                         color: "rgba(242, 242, 242, 0.5)",
-                        fontSize: "14px",
+                        fontSize: FONT_SIZES.sm,
                       }}
                     >
                       No questions yet. Use "Generate Questions" to create them.
@@ -1478,7 +1557,7 @@ export default function UploadPage() {
                   loading || generatingQuestions || !isFormValid
                     ? "not-allowed"
                     : "pointer",
-                fontSize: "16px",
+                fontSize: FONT_SIZES.md,
                 fontWeight: "600",
                 width: "100%",
                 boxShadow:
@@ -1555,7 +1634,7 @@ export default function UploadPage() {
                 <h2
                   style={{
                     margin: 0,
-                    fontSize: "24px",
+                    fontSize: FONT_SIZES.lg,
                     fontWeight: "600",
                     background:
                       "linear-gradient(135deg, #FF0F87 0%, #ff2b9e 100%)",
@@ -1572,7 +1651,7 @@ export default function UploadPage() {
                     background: "transparent",
                     border: "none",
                     color: "rgba(242, 242, 242, 0.6)",
-                    fontSize: "24px",
+                    fontSize: FONT_SIZES.lg,
                     cursor: "pointer",
                     padding: "4px 8px",
                     borderRadius: "999px",
@@ -1593,7 +1672,7 @@ export default function UploadPage() {
               <div style={{ padding: "32px" }}>
                 <div
                   style={{
-                    fontSize: "16px",
+                    fontSize: FONT_SIZES.md,
                     color: "#F2F2F2",
                     lineHeight: "1.6",
                     whiteSpace: "pre-wrap",
@@ -1619,7 +1698,7 @@ export default function UploadPage() {
                     border: "1px solid #FF0F87",
                     borderRadius: "999px",
                     color: "#F2F2F2",
-                    fontSize: "16px",
+                    fontSize: FONT_SIZES.md,
                     fontWeight: "600",
                     cursor: "pointer",
                     boxShadow: "0 4px 16px rgba(255, 0, 76, 0.4)",
@@ -1687,7 +1766,7 @@ export default function UploadPage() {
                 <h2
                   style={{
                     margin: 0,
-                    fontSize: "24px",
+                    fontSize: FONT_SIZES.lg,
                     fontWeight: "600",
                     background:
                       "linear-gradient(135deg, #FF0F87 0%, #ff2b9e 100%)",
@@ -1707,7 +1786,7 @@ export default function UploadPage() {
                     background: "transparent",
                     border: "none",
                     color: "rgba(242, 242, 242, 0.6)",
-                    fontSize: "24px",
+                    fontSize: FONT_SIZES.lg,
                     cursor: "pointer",
                     padding: "4px 8px",
                     borderRadius: "999px",
@@ -1738,7 +1817,7 @@ export default function UploadPage() {
                   }}
                   style={{
                     padding: "12px 16px",
-                    fontSize: "15px",
+                    fontSize: FONT_SIZES.sm,
                     borderRadius: "10px",
                     width: "100%",
                     border: "1px solid rgba(255, 15, 135, 0.12)",
@@ -1783,7 +1862,7 @@ export default function UploadPage() {
                     border: "1px solid rgba(242, 242, 242, 0.12)",
                     borderRadius: "999px",
                     color: "#F2F2F2",
-                    fontSize: "16px",
+                    fontSize: FONT_SIZES.md,
                     fontWeight: "600",
                     cursor: "pointer",
                     transition: "all 0.2s",
@@ -1809,7 +1888,7 @@ export default function UploadPage() {
                     border: "1px solid #FF0F87",
                     borderRadius: "999px",
                     color: "#F2F2F2",
-                    fontSize: "16px",
+                    fontSize: FONT_SIZES.md,
                     fontWeight: "600",
                     cursor: "pointer",
                     boxShadow: "0 4px 16px rgba(255, 0, 76, 0.4)",
@@ -1877,7 +1956,7 @@ export default function UploadPage() {
                 <h2
                   style={{
                     margin: 0,
-                    fontSize: "24px",
+                    fontSize: FONT_SIZES.lg,
                     fontWeight: "600",
                     background:
                       "linear-gradient(135deg, #00ff64 0%, #00cc50 100%)",
@@ -1892,14 +1971,14 @@ export default function UploadPage() {
               <div style={{ padding: "32px" }}>
                 <div
                   style={{
-                    fontSize: "16px",
+                    fontSize: FONT_SIZES.md,
                     color: "#F2F2F2",
                     lineHeight: "1.6",
                     textAlign: "center",
                   }}
                 >
-                  Your character has been uploaded successfully! You can continue
-                  adding more characters.
+                  Your character has been uploaded successfully! You can
+                  continue adding more characters.
                 </div>
               </div>
             </div>
@@ -1915,8 +1994,8 @@ export default function UploadPage() {
               left: 0,
               width: "100%",
               height: "100%",
-              background: "rgba(0, 0, 0, 0.3)",
-              backdropFilter: "blur(2px)",
+              background: "rgba(0, 0, 0, 0.8)",
+              backdropFilter: "blur(4px)",
               zIndex: 2000,
               display: "flex",
               alignItems: "center",
@@ -1926,13 +2005,13 @@ export default function UploadPage() {
           >
             <div
               style={{
-                background: "rgba(255, 255, 255, 0.02)",
-                border: "1px solid rgba(255, 15, 135, 0.3)",
+                background: "rgba(255, 255, 255, 0.12)",
+                border: "1px solid rgba(255, 15, 135, 0.5)",
                 borderRadius: "16px",
                 maxWidth: "600px",
                 width: "100%",
                 backdropFilter: "blur(20px)",
-                boxShadow: "0 8px 32px rgba(255, 15, 135, 0.3)",
+                boxShadow: "0 8px 32px rgba(255, 15, 135, 0.5)",
               }}
             >
               <div
@@ -1947,7 +2026,7 @@ export default function UploadPage() {
                 <h2
                   style={{
                     margin: 0,
-                    fontSize: "24px",
+                    fontSize: FONT_SIZES.lg,
                     fontWeight: "600",
                     background:
                       "linear-gradient(135deg, #FF0F87 0%, #ff2b9e 100%)",
@@ -1962,7 +2041,7 @@ export default function UploadPage() {
               <div style={{ padding: "32px" }}>
                 <div
                   style={{
-                    fontSize: "16px",
+                    fontSize: FONT_SIZES.md,
                     color: "#F2F2F2",
                     lineHeight: "1.6",
                     whiteSpace: "pre-wrap",
@@ -1977,7 +2056,7 @@ export default function UploadPage() {
                   {"\n"}
                   3. Upload or drag & drop a character image
                   {"\n"}
-                  4. Enter the number of prompts/questions
+                  4. Enter number of generating images/questions
                   {"\n"}
                   5. Enter prompts manually or choose "Prompts" mode (use
                   prompts from suggestions)
@@ -2011,7 +2090,7 @@ export default function UploadPage() {
                     border: "1px solid #FF0F87",
                     borderRadius: "999px",
                     color: "#F2F2F2",
-                    fontSize: "16px",
+                    fontSize: FONT_SIZES.md,
                     fontWeight: "600",
                     cursor: "pointer",
                     boxShadow: "0 4px 16px rgba(255, 0, 76, 0.4)",

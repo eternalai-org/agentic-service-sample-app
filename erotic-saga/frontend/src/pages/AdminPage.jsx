@@ -4,6 +4,14 @@ import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "../hooks/useIsMobile";
 import HomePageMobile from "./HomePageMobile";
 
+// Font size system: 4 levels
+const FONT_SIZES = {
+  xs: "12px", // Level 1: Small text, hints, captions
+  sm: "14px", // Level 2: Body text, small buttons
+  md: "16px", // Level 3: Main body text, buttons
+  lg: "24px", // Level 4: Headings, large titles
+};
+
 export default function AdminPage() {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
@@ -499,6 +507,8 @@ export default function AdminPage() {
         alignItems: "center",
         justifyContent: "center",
         padding: "1rem",
+        fontFamily:
+          '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
         position: "relative",
       }}
     >
@@ -519,7 +529,7 @@ export default function AdminPage() {
           background: "linear-gradient(135deg, #FF0F87 0%, #ff2b9e 100%)",
           color: "#FFFFFF",
           textDecoration: "none",
-          fontSize: "14px",
+          fontSize: FONT_SIZES.sm,
           fontWeight: "600",
           zIndex: 1001,
           boxShadow: "0 2px 8px rgba(255, 15, 135, 0.3)",
@@ -540,7 +550,16 @@ export default function AdminPage() {
       >
         Visit EternalAI.org to create API Key
       </a>
-      <h1 style={{ fontSize: "2.8rem", marginTop: "4rem", color: "#C0C0C0" }}>
+      <h1
+        style={{
+          fontSize: "2.8rem",
+          marginTop: "4rem",
+          background: "linear-gradient(90deg, #9D4EDD 0%, #FF0F87 50%, #FF6B35 100%)",
+          WebkitBackgroundClip: "text",
+          WebkitTextFillColor: "transparent",
+          backgroundClip: "text",
+        }}
+      >
         Admin Panel - Erotic Saga
       </h1>
 
@@ -600,7 +619,7 @@ export default function AdminPage() {
             border: "1px solid #FF0F87",
             borderRadius: "999px",
             color: "#ffffff",
-            fontSize: "16px",
+            fontSize: FONT_SIZES.md,
             fontWeight: "600",
             cursor: "pointer",
             outline: "none",
@@ -1064,7 +1083,7 @@ export default function AdminPage() {
               <h2
                 style={{
                   margin: 0,
-                  fontSize: "24px",
+                  fontSize: FONT_SIZES.lg,
                   fontWeight: "600",
                   background:
                     "linear-gradient(135deg, #ff4444 0%, #ff6666 100%)",
@@ -1081,7 +1100,7 @@ export default function AdminPage() {
                   background: "transparent",
                   border: "none",
                   color: "rgba(242, 242, 242, 0.6)",
-                  fontSize: "24px",
+                  fontSize: FONT_SIZES.lg,
                   cursor: "pointer",
                   padding: "4px 8px",
                   borderRadius: "999px",
@@ -1102,7 +1121,7 @@ export default function AdminPage() {
             <div style={{ padding: "32px" }}>
               <div
                 style={{
-                  fontSize: "16px",
+                  fontSize: FONT_SIZES.md,
                   color: "#F2F2F2",
                   lineHeight: "1.6",
                   marginBottom: "24px",
@@ -1133,7 +1152,7 @@ export default function AdminPage() {
                   border: "1px solid rgba(242, 242, 242, 0.12)",
                   borderRadius: "999px",
                   color: "#F2F2F2",
-                  fontSize: "16px",
+                  fontSize: FONT_SIZES.md,
                   fontWeight: "600",
                   cursor: loading ? "not-allowed" : "pointer",
                   transition: "all 0.2s",
@@ -1165,7 +1184,7 @@ export default function AdminPage() {
                   border: "1px solid #ff4444",
                   borderRadius: "999px",
                   color: "#F2F2F2",
-                  fontSize: "16px",
+                  fontSize: FONT_SIZES.md,
                   fontWeight: "600",
                   cursor: loading ? "not-allowed" : "pointer",
                   boxShadow: "0 4px 16px rgba(255, 0, 0, 0.4)",

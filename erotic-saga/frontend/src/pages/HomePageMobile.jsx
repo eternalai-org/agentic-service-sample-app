@@ -2,6 +2,14 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
+// Font size system: 4 levels
+const FONT_SIZES = {
+  xs: "12px",   // Level 1: Small text, hints, captions
+  sm: "14px",   // Level 2: Body text, small buttons
+  md: "16px",   // Level 3: Main body text, buttons
+  lg: "24px",   // Level 4: Headings, large titles
+};
+
 export default function HomePageMobile() {
   const navigate = useNavigate();
   const [characters, setCharacters] = useState([]);
@@ -287,7 +295,7 @@ export default function HomePageMobile() {
         backgroundColor: "#000000",
         minHeight: "100vh",
         color: "#F2F2F2",
-        fontFamily: "system-ui, sans-serif",
+        fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
         position: "relative",
         overflow: "hidden",
       }}
@@ -304,7 +312,7 @@ export default function HomePageMobile() {
           background: "linear-gradient(135deg, #FF0F87 0%, #ff2b9e 100%)",
           color: "#fff",
           textDecoration: "none",
-          fontSize: "14px",
+          fontSize: FONT_SIZES.sm,
           fontWeight: "600",
           boxShadow: "0 2px 8px rgba(255, 15, 135, 0.3)",
         }}
@@ -326,10 +334,12 @@ export default function HomePageMobile() {
           style={{
             fontSize: "1.5rem",
             margin: 0,
-            color: "#fff",
             fontWeight: "700",
             padding: "0.5rem 1rem",
-            background: "rgba(0, 0, 0, 0.3)",
+            background: "linear-gradient(90deg, #9D4EDD 0%, #FF0F87 50%, #FF6B35 100%)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            backgroundClip: "text",
             borderRadius: "8px",
           }}
         >
@@ -526,8 +536,8 @@ export default function HomePageMobile() {
             left: 0,
             width: "90%",
             height: "100%",
-            background: "rgba(0, 0, 0, 0.3)",
-            backdropFilter: "blur(2px)",
+            background: "rgba(0, 0, 0, 0.8)",
+            backdropFilter: "blur(4px)",
             zIndex: 2000,
             display: "flex",
             alignItems: "center",
@@ -537,13 +547,13 @@ export default function HomePageMobile() {
         >
           <div
             style={{
-              background: "rgba(255, 255, 255, 0.02)",
-              border: "1px solid rgba(255, 15, 135, 0.3)",
+              background: "rgba(255, 255, 255, 0.12)",
+              border: "1px solid rgba(255, 15, 135, 0.5)",
               borderRadius: "16px",
               maxWidth: "90%",
               width: "100%",
               backdropFilter: "blur(20px)",
-              boxShadow: "0 8px 32px rgba(255, 15, 135, 0.3)",
+              boxShadow: "0 8px 32px rgba(255, 15, 135, 0.5)",
             }}
           >
             <div
@@ -558,7 +568,7 @@ export default function HomePageMobile() {
               <h2
                 style={{
                   margin: 0,
-                  fontSize: "20px",
+                  fontSize: FONT_SIZES.lg,
                   fontWeight: "600",
                   background:
                     "linear-gradient(135deg, #FF0F87 0%, #ff2b9e 100%)",
@@ -573,7 +583,7 @@ export default function HomePageMobile() {
             <div style={{ padding: "24px" }}>
               <div
                 style={{
-                  fontSize: "14px",
+                  fontSize: FONT_SIZES.sm,
                   color: "#F2F2F2",
                   lineHeight: "1.6",
                   whiteSpace: "pre-wrap",
@@ -606,7 +616,7 @@ export default function HomePageMobile() {
                   border: "1px solid #FF0F87",
                   borderRadius: "999px",
                   color: "#F2F2F2",
-                  fontSize: "14px",
+                  fontSize: FONT_SIZES.sm,
                   fontWeight: "600",
                   cursor: "pointer",
                   boxShadow: "0 4px 16px rgba(255, 0, 76, 0.4)",

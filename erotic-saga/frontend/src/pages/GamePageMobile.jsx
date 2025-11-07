@@ -2,6 +2,14 @@ import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
+// Font size system: 4 levels
+const FONT_SIZES = {
+  xs: "12px",   // Level 1: Small text, hints, captions
+  sm: "14px",   // Level 2: Body text, small buttons
+  md: "16px",   // Level 3: Main body text, buttons
+  lg: "24px",   // Level 4: Headings, large titles
+};
+
 export default function GamePageMobile() {
   const navigate = useNavigate();
   const [qid, setQid] = useState(1);
@@ -111,6 +119,7 @@ export default function GamePageMobile() {
         display: "flex",
         flexDirection: "column",
         overflow: "auto",
+        fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
       }}
     >
       {/* Game Over Modal */}
@@ -220,7 +229,7 @@ export default function GamePageMobile() {
             padding: "10px 16px",
             borderRadius: "8px 0 0 8px",
             cursor: "pointer",
-            fontSize: "14px",
+            fontSize: FONT_SIZES.sm,
             fontWeight: "600",
             boxShadow: "0 2px 8px rgba(255, 15, 135, 0.4)",
             transition: "all 0.2s",
@@ -234,11 +243,14 @@ export default function GamePageMobile() {
           style={{
             fontSize: "1.5rem",
             fontWeight: 700,
-            color: "#fff",
             margin: 0,
             flex: 1,
             textAlign: "center",
-            fontFamily: "serif",
+            fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+            background: "linear-gradient(90deg, #9D4EDD 0%, #FF0F87 50%, #FF6B35 100%)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            backgroundClip: "text",
           }}
         >
           Erotic Saga
@@ -412,7 +424,7 @@ export default function GamePageMobile() {
                   border: "1px solid #FF0F87",
                   backgroundColor: "#FF0F87",
                   color: "#F2F2F2",
-                  fontSize: "16px",
+                  fontSize: FONT_SIZES.md,
                   fontWeight: "600",
                   cursor:
                     !answer || wrongAnswers.includes(answer)
