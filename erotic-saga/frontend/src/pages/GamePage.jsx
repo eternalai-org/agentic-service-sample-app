@@ -1,9 +1,11 @@
 import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "../hooks/useIsMobile";
 import GamePageMobile from "./GamePageMobile";
 
 export default function GamePage() {
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [qid, setQid] = useState(1);
   const [question, setQuestion] = useState(null);
@@ -11,8 +13,9 @@ export default function GamePage() {
   const [answer, setAnswer] = useState("");
   const [isWin, setIsWin] = useState(false);
   const [showGameOver, setShowGameOver] = useState(false);
+  const [hearts, setHearts] = useState(3);
+  const [wrongAnswers, setWrongAnswers] = useState([]); // Array to store all wrong answers
   const characterId = Number(localStorage.getItem("selectedCharacterId")) || 1;
-  const [bg, setBg] = useState(null);
 
   const fetchQuestion = useCallback(
     async (id) => {
@@ -28,24 +31,15 @@ export default function GamePage() {
     [characterId]
   );
 
-  // Load default background
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await axios.get("/api/default-background");
-        setBg(res.data?.image || null);
-      } catch (e) {
-        console.warn("Failed to load default background", e);
-      }
-    })();
-  }, []);
-
   useEffect(() => {
     fetchQuestion(1);
+    setHearts(3); // Reset hearts when starting new game
+    setWrongAnswers([]);
   }, [fetchQuestion]);
 
   useEffect(() => {
     setAnswer("");
+    setWrongAnswers([]); // Reset wrong answers when question changes
   }, [qid]);
 
   if (isMobile) {
@@ -72,8 +66,24 @@ export default function GamePage() {
         setImage(res.data.next_image); // display final image
         setQuestion(null); // hide question + answer button
       }
+      setWrongAnswers([]); // Clear wrong answers on correct
     } else {
-      setShowGameOver(true);
+      // Wrong answer - decrease hearts and add wrong answer to array
+      setWrongAnswers((prev) => {
+        // Only add if not already in the array
+        if (!prev.includes(answer)) {
+          return [...prev, answer];
+        }
+        return prev;
+      });
+      const newHearts = hearts - 1;
+      setHearts(newHearts);
+      setAnswer(""); // Clear selected answer
+
+      // Only show game over if hearts reach 0
+      if (newHearts <= 0) {
+        setShowGameOver(true);
+      }
     }
   };
 
@@ -83,14 +93,10 @@ export default function GamePage() {
   return (
     <div
       style={{
+        backgroundColor: "#000000",
         width: "100vw",
         height: "100vh",
         position: "relative",
-        background: "#0a0a1a",
-        backgroundImage: bg ? `url(${bg})` : undefined,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -131,10 +137,18 @@ export default function GamePage() {
               Game Over
             </div>
             <div style={{ fontSize: "1.6rem", color: "#C0C0C0" }}>
-              You selected the wrong answer. Try again later!
+              You've run out of lives! You selected 3 wrong answers. Try again
+              later!
             </div>
             <button
-              onClick={() => (window.location.href = "/")}
+              onClick={() => {
+                const cameFromAdmin = localStorage.getItem("cameFromAdmin");
+                if (cameFromAdmin === "true") {
+                  navigate("/admin");
+                } else {
+                  navigate("/");
+                }
+              }}
               style={{
                 marginTop: "20px",
                 padding: "14px 48px",
@@ -165,8 +179,41 @@ export default function GamePage() {
           </div>
         </div>
       )}
+      {/* Hearts Display */}
+      <div
+        style={{
+          position: "absolute",
+          top: "20px",
+          right: "20px",
+          display: "flex",
+          gap: "8px",
+          alignItems: "center",
+          zIndex: 100,
+        }}
+      >
+        {Array.from({ length: 3 }).map((_, i) => (
+          <span
+            key={i}
+            style={{
+              fontSize: "28px",
+              color: i < hearts ? "#FF0F87" : "rgba(255, 255, 255, 0.3)",
+              transition: "all 0.3s ease",
+            }}
+          >
+            ❤️
+          </span>
+        ))}
+      </div>
+
       <button
-        onClick={() => (window.location.href = "/")}
+        onClick={() => {
+          const cameFromAdmin = localStorage.getItem("cameFromAdmin");
+          if (cameFromAdmin === "true") {
+            navigate("/admin");
+          } else {
+            navigate("/");
+          }
+        }}
         style={{
           position: "absolute",
           top: "20px",
@@ -200,10 +247,6 @@ export default function GamePage() {
         style={{
           background: "#0a0a1a",
           backgroundColor: "#222",
-          backgroundImage: bg ? `url(${bg})` : undefined,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
           borderRadius: "12px",
           padding: "1.4rem",
           textAlign: "center",
@@ -281,36 +324,57 @@ export default function GamePage() {
                 marginRight: "auto",
               }}
             >
-              {question.options.map((opt, i) => (
-                <button
-                  key={i}
-                  onClick={() => setAnswer(opt)}
-                  style={{
-                    backgroundColor:
-                      answer === opt ? "#FF0F87" : "rgba(20,20,20,0.8)",
-                    border: `1px solid ${
-                      answer === opt ? "#FF0F87" : "#F2F2F2"
-                    }`,
-                    color: "#F2F2F2",
-                    borderRadius: "4px",
-                    padding: "0.56rem",
-                    fontSize: "1.4rem",
-                    fontWeight: "600",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease",
-                    boxShadow: answer === opt ? "0 0 10px #FF004C" : undefined,
-                    width: "100%", // ensures full column width & neat alignment
-                    textAlign: "center", // center text inside button
-                  }}
-                >
-                  {opt}
-                </button>
-              ))}
+              {question.options.map((opt, i) => {
+                const isSelected = answer === opt;
+                const isWrong = wrongAnswers.includes(opt);
+                const isDisabled = isWrong; // Disable if already marked as wrong
+                let backgroundColor = "rgba(20,20,20,0.8)";
+                let borderColor = "#F2F2F2";
+
+                if (isWrong) {
+                  backgroundColor = "#ff4444"; // Red background for wrong answer
+                  borderColor = "#ff4444";
+                } else if (isSelected) {
+                  backgroundColor = "#FF0F87";
+                  borderColor = "#FF0F87";
+                }
+
+                return (
+                  <button
+                    key={i}
+                    onClick={() => {
+                      if (!isDisabled) {
+                        setAnswer(opt);
+                      }
+                    }}
+                    disabled={isDisabled}
+                    style={{
+                      backgroundColor: backgroundColor,
+                      border: `1px solid ${borderColor}`,
+                      color: "#F2F2F2",
+                      borderRadius: "4px",
+                      padding: "0.56rem",
+                      fontSize: "1.4rem",
+                      fontWeight: "600",
+                      cursor: isDisabled ? "not-allowed" : "pointer",
+                      transition: "all 0.2s ease",
+                      boxShadow:
+                        isSelected || isWrong ? "0 0 10px #FF004C" : undefined,
+                      width: "100%", // ensures full column width & neat alignment
+                      textAlign: "center", // center text inside button
+                      opacity: isDisabled ? 0.6 : 1,
+                    }}
+                  >
+                    {opt}
+                  </button>
+                );
+              })}
             </div>
 
             {/* Submit button */}
             <button
               onClick={handleAnswer}
+              disabled={!answer || wrongAnswers.includes(answer)}
               style={{
                 marginTop: "16px",
                 padding: "14px 48px",
@@ -320,20 +384,28 @@ export default function GamePage() {
                 color: "#F2F2F2",
                 fontSize: "16px",
                 fontWeight: "600",
-                cursor: "pointer",
+                cursor:
+                  !answer || wrongAnswers.includes(answer)
+                    ? "not-allowed"
+                    : "pointer",
                 transition: "all 0.2s",
                 boxShadow: "0 4px 16px rgba(255, 0, 76, 0.4)",
                 letterSpacing: "0.01em",
+                opacity: !answer || wrongAnswers.includes(answer) ? 0.5 : 1,
               }}
               onMouseEnter={(e) => {
-                e.target.style.background = "#ff2b9e";
-                e.target.style.transform = "translateY(-2px)";
-                e.target.style.boxShadow = "0 6px 20px rgba(255, 0, 76, 0.6)";
+                if (!(!answer || wrongAnswers.includes(answer))) {
+                  e.target.style.background = "#ff2b9e";
+                  e.target.style.transform = "translateY(-2px)";
+                  e.target.style.boxShadow = "0 6px 20px rgba(255, 0, 76, 0.6)";
+                }
               }}
               onMouseLeave={(e) => {
-                e.target.style.background = "#FF0F87";
-                e.target.style.transform = "translateY(0)";
-                e.target.style.boxShadow = "0 4px 16px rgba(255, 0, 76, 0.4)";
+                if (!(!answer || wrongAnswers.includes(answer))) {
+                  e.target.style.background = "#FF0F87";
+                  e.target.style.transform = "translateY(0)";
+                  e.target.style.boxShadow = "0 4px 16px rgba(255, 0, 76, 0.4)";
+                }
               }}
             >
               Submit

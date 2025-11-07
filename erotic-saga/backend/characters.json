@@ -3,6 +3,64 @@
     "id": 2,
     "name": "Laurent",
     "original_image": "uploads/2_laurent/0.jpg",
-    "folder": "uploads/2_laurent"
+    "folder": "uploads/2_laurent",
+    "owner": "Eternal AI",
+    "status": "public"
+  },
+  {
+    "id": 3,
+    "name": "Aoyama",
+    "original_image": "uploads/3_aoyama/0.jpg",
+    "folder": "uploads/3_aoyama",
+    "owner": "Eternal AI",
+    "status": "public"
+  },
+  {
+    "id": 5,
+    "name": "Yoo Meri",
+    "original_image": "uploads/5_yoo_meri/0.jpg",
+    "folder": "uploads/5_yoo_meri",
+    "owner": "Eternal AI",
+    "status": "public"
+  },
+  {
+    "id": 6,
+    "name": "Aaliyah",
+    "original_image": "uploads/6_aaliyah/0.jpg",
+    "folder": "uploads/6_aaliyah",
+    "owner": "Eternal AI",
+    "status": "public"
+  },
+  {
+    "id": 7,
+    "name": "Madison",
+    "original_image": "uploads/7_madison/0.jpg",
+    "folder": "uploads/7_madison",
+    "owner": "Eternal AI",
+    "status": "public"
+  },
+  {
+    "id": 8,
+    "name": "Hana Mizuki",
+    "original_image": "uploads/8_hana_mizuki/0.jpg",
+    "folder": "uploads/8_hana_mizuki",
+    "owner": "Eternal AI",
+    "status": "public"
+  },
+  {
+    "id": 9,
+    "name": "Camila Torres",
+    "original_image": "uploads/9_camila_torres/0.jpg",
+    "folder": "uploads/9_camila_torres",
+    "owner": "Eternal AI",
+    "status": "public"
+  },
+  {
+    "id": 10,
+    "name": "Kurenai",
+    "original_image": "uploads/10_kurenai/0.jpg",
+    "folder": "uploads/10_kurenai",
+    "owner": "Eternal AI",
+    "status": "public"
   }
 ]

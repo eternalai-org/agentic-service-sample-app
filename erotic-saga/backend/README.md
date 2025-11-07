@@ -9,7 +9,6 @@ backend/
 ├── characters.json         # Characters list
 ├── prompts.json            # Prompt suggestions list
 ├── password_admin.txt      # Admin password
-├── default_background.jpg  # Default background image
 │
 ├── utils/                  # Utility functions
 │   ├── ai_api.py           # Eternal AI API integration
@@ -49,8 +48,8 @@ Server runs at: `http://127.0.0.1:8000`
 
 - `POST /api/verify-password` - Verify admin password
 - `GET /api/prompts` - Get prompt suggestions
-- `GET /api/default-background` - Get default background image
-- `GET /api/characters` - Get characters list
+- `GET /api/characters` - Get characters list (with pagination and filtering)
+- `GET /api/admin/characters` - Get all characters (admin only, with sorting)
 - `POST /api/upload` - Upload a new character
 - `POST /api/generate-questions` - Generate questions via AI
 - `POST /api/question/{qid}` - Get question by ID

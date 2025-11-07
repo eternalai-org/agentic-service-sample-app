@@ -10,8 +10,9 @@ export default function GamePageMobile() {
   const [answer, setAnswer] = useState("");
   const [isWin, setIsWin] = useState(false);
   const [showGameOver, setShowGameOver] = useState(false);
+  const [hearts, setHearts] = useState(3);
+  const [wrongAnswers, setWrongAnswers] = useState([]); // Array to store all wrong answers
   const characterId = Number(localStorage.getItem("selectedCharacterId")) || 1;
-  const [bg, setBg] = useState(null);
 
   const fetchQuestion = useCallback(
     async (id) => {
@@ -27,24 +28,15 @@ export default function GamePageMobile() {
     [characterId]
   );
 
-  // Load default background
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await axios.get("/api/default-background");
-        setBg(res.data?.image || null);
-      } catch (e) {
-        console.warn("Failed to load default background", e);
-      }
-    })();
-  }, []);
-
   useEffect(() => {
     fetchQuestion(1);
+    setHearts(3); // Reset hearts when starting new game
+    setWrongAnswers([]);
   }, [fetchQuestion]);
 
   useEffect(() => {
     setAnswer("");
+    setWrongAnswers([]); // Reset wrong answers when question changes
   }, [qid]);
 
   const handleAnswer = async () => {
@@ -67,8 +59,24 @@ export default function GamePageMobile() {
         setImage(res.data.next_image);
         setQuestion(null);
       }
+      setWrongAnswers([]); // Clear wrong answers on correct
     } else {
-      setShowGameOver(true);
+      // Wrong answer - decrease hearts and add wrong answer to array
+      setWrongAnswers((prev) => {
+        // Only add if not already in the array
+        if (!prev.includes(answer)) {
+          return [...prev, answer];
+        }
+        return prev;
+      });
+      const newHearts = hearts - 1;
+      setHearts(newHearts);
+      setAnswer(""); // Clear selected answer
+
+      // Only show game over if hearts reach 0
+      if (newHearts <= 0) {
+        setShowGameOver(true);
+      }
     }
   };
 
@@ -77,16 +85,12 @@ export default function GamePageMobile() {
     return (
       <div
         style={{
+          backgroundColor: "#000000",
           width: "100vw",
           height: "100vh",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: bg
-            ? `url(${bg})`
-            : "linear-gradient(135deg, #FF0F87 0%, #8B008B 100%)",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
           color: "#F2F2F2",
         }}
       >
@@ -98,16 +102,12 @@ export default function GamePageMobile() {
   return (
     <div
       style={{
+        backgroundColor: "#000000",
         width: "100vw",
         height: "100vh",
         position: "fixed",
         top: 0,
         left: 0,
-        background: "#0a0a1a",
-        backgroundImage: bg ? `url(${bg})` : undefined,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
         display: "flex",
         flexDirection: "column",
         overflow: "auto",
@@ -156,10 +156,18 @@ export default function GamePageMobile() {
                 marginBottom: "20px",
               }}
             >
-              You selected the wrong answer. Try again later!
+              You've run out of lives! You selected 3 wrong answers. Try again
+              later!
             </div>
             <button
-              onClick={() => navigate("/")}
+              onClick={() => {
+                const cameFromAdmin = localStorage.getItem("cameFromAdmin");
+                if (cameFromAdmin === "true") {
+                  navigate("/admin");
+                } else {
+                  navigate("/");
+                }
+              }}
               style={{
                 padding: "14px 48px",
                 borderRadius: "999px",
@@ -197,7 +205,14 @@ export default function GamePageMobile() {
       >
         {/* Back to Home Button */}
         <button
-          onClick={() => navigate("/")}
+          onClick={() => {
+            const cameFromAdmin = localStorage.getItem("cameFromAdmin");
+            if (cameFromAdmin === "true") {
+              navigate("/admin");
+            } else {
+              navigate("/");
+            }
+          }}
           style={{
             background: "#FF0F87",
             border: "none",
@@ -229,8 +244,29 @@ export default function GamePageMobile() {
           Erotic Saga
         </h1>
 
-        {/* Spacer for alignment */}
-        <div style={{ width: "120px" }} />
+        {/* Hearts Display */}
+        <div
+          style={{
+            display: "flex",
+            gap: "4px",
+            alignItems: "center",
+            width: "120px",
+            justifyContent: "flex-end",
+          }}
+        >
+          {Array.from({ length: 3 }).map((_, i) => (
+            <span
+              key={i}
+              style={{
+                fontSize: "20px",
+                color: i < hearts ? "#FF0F87" : "rgba(255, 255, 255, 0.3)",
+                transition: "all 0.3s ease",
+              }}
+            >
+              ❤️
+            </span>
+          ))}
+        </div>
       </div>
 
       {/* Main Content Container */}
@@ -289,7 +325,7 @@ export default function GamePageMobile() {
                   backgroundColor: "rgba(20,20,20,0.8)",
                   color: "#F2F2F2",
                   borderRadius: "6px",
-                  marginTop: "1.05rem",
+                  marginTop: "1rem",
                   padding: "0.56rem",
                   fontSize: "1.1rem",
                   fontWeight: "600",
@@ -311,44 +347,66 @@ export default function GamePageMobile() {
                   display: "grid",
                   gridTemplateColumns: "1fr 1fr",
                   gap: "0.7rem",
-                  marginTop: "0.84rem",
+                  marginTop: "0rem",
                   width: "100%",
                   justifyItems: "center",
                 }}
               >
-                {question.options.map((opt, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setAnswer(opt)}
-                    style={{
-                      backgroundColor:
-                        answer === opt ? "#FF0F87" : "rgba(20,20,20,0.8)",
-                      border: `1px solid ${
-                        answer === opt ? "#FF0F87" : "#F2F2F2"
-                      }`,
-                      color: "#F2F2F2",
-                      borderRadius: "4px",
-                      padding: "0.56rem",
-                      fontSize: "1.1rem",
-                      fontWeight: "600",
-                      cursor: "pointer",
-                      transition: "all 0.2s ease",
-                      boxShadow:
-                        answer === opt ? "0 0 10px #FF004C" : undefined,
-                      width: "100%",
-                      textAlign: "center",
-                    }}
-                  >
-                    {opt}
-                  </button>
-                ))}
+                {question.options.map((opt, i) => {
+                  const isSelected = answer === opt;
+                  const isWrong = wrongAnswers.includes(opt);
+                  const isDisabled = isWrong; // Disable if already marked as wrong
+                  let backgroundColor = "rgba(20,20,20,0.8)";
+                  let borderColor = "#F2F2F2";
+
+                  if (isWrong) {
+                    backgroundColor = "#ff4444"; // Red background for wrong answer
+                    borderColor = "#ff4444";
+                  } else if (isSelected) {
+                    backgroundColor = "#FF0F87";
+                    borderColor = "#FF0F87";
+                  }
+
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => {
+                        if (!isDisabled) {
+                          setAnswer(opt);
+                        }
+                      }}
+                      disabled={isDisabled}
+                      style={{
+                        backgroundColor: backgroundColor,
+                        border: `1px solid ${borderColor}`,
+                        color: "#F2F2F2",
+                        borderRadius: "4px",
+                        padding: "0.56rem",
+                        fontSize: "1.1rem",
+                        fontWeight: "600",
+                        cursor: isDisabled ? "not-allowed" : "pointer",
+                        transition: "all 0.2s ease",
+                        boxShadow:
+                          isSelected || isWrong
+                            ? "0 0 10px #FF004C"
+                            : undefined,
+                        width: "100%",
+                        textAlign: "center",
+                        opacity: isDisabled ? 0.6 : 1,
+                      }}
+                    >
+                      {opt}
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Submit Button */}
               <button
                 onClick={handleAnswer}
+                disabled={!answer || wrongAnswers.includes(answer)}
                 style={{
-                  marginTop: "16px",
+                  marginTop: "1px",
                   padding: "14px 48px",
                   borderRadius: "999px",
                   border: "1px solid #FF0F87",
@@ -356,10 +414,14 @@ export default function GamePageMobile() {
                   color: "#F2F2F2",
                   fontSize: "16px",
                   fontWeight: "600",
-                  cursor: "pointer",
+                  cursor:
+                    !answer || wrongAnswers.includes(answer)
+                      ? "not-allowed"
+                      : "pointer",
                   transition: "all 0.2s",
                   boxShadow: "0 4px 16px rgba(255, 0, 76, 0.4)",
                   letterSpacing: "0.01em",
+                  opacity: !answer || wrongAnswers.includes(answer) ? 0.5 : 1,
                 }}
               >
                 Submit

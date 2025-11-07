@@ -21,13 +21,15 @@ export default function UploadPage() {
   const [difficulties, setDifficulties] = useState(Array(4).fill(1));
   const [generatedQuestions, setGeneratedQuestions] = useState(null);
   const [generatingQuestions, setGeneratingQuestions] = useState(false);
-  const [bg, setBg] = useState(null);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [isFormValid, setIsFormValid] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [hasSwitchedToQuestions, setHasSwitchedToQuestions] = useState(false);
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [adminPassword, setAdminPassword] = useState("");
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
 
   // Validate form function
   const validateForm = () => {
@@ -110,17 +112,20 @@ export default function UploadPage() {
     fetchSuggestions();
   }, []);
 
-  // Load default background
+  // Load API key from localStorage on mount
   React.useEffect(() => {
-    (async () => {
-      try {
-        const res = await axios.get("/api/default-background");
-        setBg(res.data?.image || null);
-      } catch (e) {
-        console.warn("Failed to load default background", e);
-      }
-    })();
+    const savedApiKey = localStorage.getItem("uploadApiKey");
+    if (savedApiKey) {
+      setApiKey(savedApiKey);
+    }
   }, []);
+
+  // Save API key to localStorage when it changes
+  React.useEffect(() => {
+    if (apiKey) {
+      localStorage.setItem("uploadApiKey", apiKey);
+    }
+  }, [apiKey]);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -270,6 +275,32 @@ export default function UploadPage() {
     }
   };
 
+  const handleAdminLogin = async () => {
+    if (!adminPassword.trim()) {
+      return;
+    }
+
+    try {
+      const form = new FormData();
+      form.append("password", adminPassword);
+      const res = await axios.post("/api/verify-password", form);
+      if (res.data.valid) {
+        // Save password to localStorage for admin API calls
+        localStorage.setItem("admin_password", adminPassword);
+        // Clear saved admin page to start from block 0 when logging in
+        localStorage.removeItem("adminPage");
+        navigate("/admin");
+      } else {
+        setErrorMessage("Incorrect password!");
+        setShowErrorModal(true);
+      }
+    } catch (err) {
+      console.error("Error verifying password:", err);
+      setErrorMessage("Failed to verify password. Please try again.");
+      setShowErrorModal(true);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -295,11 +326,32 @@ export default function UploadPage() {
         headers: { "Content-Type": "multipart/form-data" },
       });
       console.log("✅ Upload success:", res.data);
+      
+      // Save current API key before resetting
+      const currentApiKey = apiKey;
+      
+      // Reset all form fields except API key
+      setCharacterName("");
+      setImage(null);
+      setImagePreview(null);
+      setPromptCount(4);
+      setPrompts(Array(4).fill(""));
+      setMode("prompts");
+      setTopic("");
+      setDifficulties(Array(4).fill(1));
+      setGeneratedQuestions(null);
+      setHasSwitchedToQuestions(false);
+      setShowSuggestions(Array(4).fill(false));
+      
+      // Restore API key
+      setApiKey(currentApiKey);
+      
       // Show success modal
       setShowSuccessModal(true);
-      // Navigate to home after a short delay
+      
+      // Close success modal after 2 seconds (stay on page)
       setTimeout(() => {
-        navigate("/");
+        setShowSuccessModal(false);
       }, 2000);
     } catch (err) {
       console.error("❌ Upload error:", err);
@@ -339,13 +391,9 @@ export default function UploadPage() {
       />
       <div
         style={{
+          backgroundColor: "#000000",
           padding: "2rem",
           color: "#F2F2F2",
-          background: "#0a0a1a",
-          backgroundImage: bg ? `url(${bg})` : undefined,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
           minHeight: "100vh",
           display: "flex",
           justifyContent: "space-between",
@@ -359,7 +407,7 @@ export default function UploadPage() {
           target="_blank"
           rel="noopener noreferrer"
           style={{
-            position: "fixed",
+            position: "absolute",
             top: 0,
             left: 0,
             right: 0,
@@ -389,7 +437,7 @@ export default function UploadPage() {
             e.target.style.transform = "translateY(0)";
           }}
         >
-          Visit Eternal AI API
+          Visit EternalAI.org to create API Key
         </a>
         {/* Left column: character info */}
         <div
@@ -401,22 +449,70 @@ export default function UploadPage() {
           }}
         >
           <button
-            onClick={() => navigate("/")}
+            onClick={() => {
+              const cameFromAdmin = localStorage.getItem("cameFromAdmin");
+              if (cameFromAdmin === "true") {
+                navigate("/admin");
+              } else {
+                navigate("/");
+              }
+            }}
             style={{
               position: "absolute",
               top: "60px",
               left: "20px",
-              background: "#555",
-              border: "none",
-              color: "#fff",
-              padding: "8px 16px",
-              borderRadius: "6px",
+              background: "transparent",
+              border: "1px solid rgba(242, 242, 242, 0.12)",
+              color: "#F2F2F2",
+              padding: "10px 20px",
+              borderRadius: "999px",
               cursor: "pointer",
-              fontSize: "1.5rem",
+              fontSize: "15px",
+              fontWeight: "600",
+              transition: "all 0.2s",
               backgroundColor: "#FF0F87",
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.borderColor = "#FF0F87";
+              e.target.style.background = "rgba(255, 15, 135, 0.1)";
+              e.target.style.color = "#fff";
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.borderColor = "rgba(242, 242, 242, 0.12)";
+              e.target.style.background = "#FF0F87";
+              e.target.style.color = "#F2F2F2";
             }}
           >
             Back to Home
+          </button>
+
+          <button
+            onClick={() => setShowAdminLogin(true)}
+            style={{
+              position: "absolute",
+              top: "60px",
+              right: "20px",
+              background: "#FF0F87",
+              border: "1px solid #FF0F87",
+              color: "#fff",
+              padding: "10px 20px",
+              borderRadius: "6px",
+              cursor: "pointer",
+              fontSize: "14px",
+              fontWeight: "600",
+              boxShadow: "0 4px 16px rgba(255, 0, 76, 0.4)",
+              transition: "all 0.2s",
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.background = "#ff2b9e";
+              e.target.style.transform = "translateY(-2px)";
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.background = "#FF0F87";
+              e.target.style.transform = "translateY(0)";
+            }}
+          >
+            Admin Login
           </button>
 
           <h1
@@ -1550,6 +1646,196 @@ export default function UploadPage() {
           </div>
         )}
 
+        {/* Admin Login Modal */}
+        {showAdminLogin && (
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              background: "rgba(0, 0, 0, 0.9)",
+              backdropFilter: "blur(10px)",
+              zIndex: 2000,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "24px",
+            }}
+          >
+            <div
+              style={{
+                background: "rgba(255, 255, 255, 0.02)",
+                border: "1px solid rgba(255, 15, 135, 0.3)",
+                borderRadius: "16px",
+                maxWidth: "400px",
+                width: "100%",
+                backdropFilter: "blur(20px)",
+                boxShadow: "0 8px 32px rgba(255, 15, 135, 0.3)",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  padding: "24px 32px",
+                  borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+                }}
+              >
+                <h2
+                  style={{
+                    margin: 0,
+                    fontSize: "24px",
+                    fontWeight: "600",
+                    background:
+                      "linear-gradient(135deg, #FF0F87 0%, #ff2b9e 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
+                  }}
+                >
+                  Admin Login
+                </h2>
+                <button
+                  onClick={() => {
+                    setShowAdminLogin(false);
+                    setAdminPassword("");
+                  }}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    color: "rgba(242, 242, 242, 0.6)",
+                    fontSize: "24px",
+                    cursor: "pointer",
+                    padding: "4px 8px",
+                    borderRadius: "999px",
+                    transition: "all 0.2s",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.background = "rgba(255, 15, 135, 0.1)";
+                    e.target.style.color = "#fff";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.background = "transparent";
+                    e.target.style.color = "rgba(242, 242, 242, 0.6)";
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+              <div style={{ padding: "32px" }}>
+                <input
+                  type="password"
+                  placeholder="Enter admin password..."
+                  value={adminPassword}
+                  onChange={(e) => setAdminPassword(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleAdminLogin();
+                    }
+                  }}
+                  style={{
+                    padding: "12px 16px",
+                    fontSize: "15px",
+                    borderRadius: "10px",
+                    width: "100%",
+                    border: "1px solid rgba(255, 15, 135, 0.12)",
+                    background: "rgba(20, 20, 20, 0.8)",
+                    color: "#F2F2F2",
+                    outline: "none",
+                    fontFamily: "inherit",
+                    transition: "all 0.2s",
+                    marginBottom: "20px",
+                    boxSizing: "border-box",
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = "#FF0F87";
+                    e.target.style.background = "rgba(20, 20, 20, 0.95)";
+                    e.target.style.boxShadow =
+                      "0 0 0 3px rgba(255, 15, 135, 0.1)";
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = "rgba(255, 15, 135, 0.12)";
+                    e.target.style.background = "rgba(20, 20, 20, 0.8)";
+                    e.target.style.boxShadow = "none";
+                  }}
+                />
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  gap: "12px",
+                  justifyContent: "flex-end",
+                  padding: "24px 32px",
+                  borderTop: "1px solid rgba(255, 255, 255, 0.1)",
+                }}
+              >
+                <button
+                  onClick={() => {
+                    setShowAdminLogin(false);
+                    setAdminPassword("");
+                  }}
+                  style={{
+                    padding: "14px 32px",
+                    background: "transparent",
+                    border: "1px solid rgba(242, 242, 242, 0.12)",
+                    borderRadius: "999px",
+                    color: "#F2F2F2",
+                    fontSize: "16px",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                    transition: "all 0.2s",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.borderColor = "#FF0F87";
+                    e.target.style.background = "rgba(255, 15, 135, 0.1)";
+                    e.target.style.color = "#fff";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.borderColor = "rgba(242, 242, 242, 0.12)";
+                    e.target.style.background = "transparent";
+                    e.target.style.color = "#F2F2F2";
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAdminLogin}
+                  style={{
+                    padding: "14px 48px",
+                    background: "#FF0F87",
+                    border: "1px solid #FF0F87",
+                    borderRadius: "999px",
+                    color: "#F2F2F2",
+                    fontSize: "16px",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                    boxShadow: "0 4px 16px rgba(255, 0, 76, 0.4)",
+                    transition: "all 0.2s",
+                    letterSpacing: "0.01em",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.background = "#ff2b9e";
+                    e.target.style.transform = "translateY(-2px)";
+                    e.target.style.boxShadow =
+                      "0 6px 20px rgba(255, 0, 76, 0.6)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.background = "#FF0F87";
+                    e.target.style.transform = "translateY(0)";
+                    e.target.style.boxShadow =
+                      "0 4px 16px rgba(255, 0, 76, 0.4)";
+                  }}
+                >
+                  Login
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Success Modal */}
         {showSuccessModal && (
           <div
@@ -1612,9 +1898,141 @@ export default function UploadPage() {
                     textAlign: "center",
                   }}
                 >
-                  Your character has been uploaded successfully! Redirecting to
-                  home...
+                  Your character has been uploaded successfully! You can continue
+                  adding more characters.
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Welcome Modal - How to Add Character */}
+        {showWelcomeModal && (
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              background: "rgba(0, 0, 0, 0.3)",
+              backdropFilter: "blur(2px)",
+              zIndex: 2000,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "24px",
+            }}
+          >
+            <div
+              style={{
+                background: "rgba(255, 255, 255, 0.02)",
+                border: "1px solid rgba(255, 15, 135, 0.3)",
+                borderRadius: "16px",
+                maxWidth: "600px",
+                width: "100%",
+                backdropFilter: "blur(20px)",
+                boxShadow: "0 8px 32px rgba(255, 15, 135, 0.3)",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  padding: "24px 32px",
+                  borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+                }}
+              >
+                <h2
+                  style={{
+                    margin: 0,
+                    fontSize: "24px",
+                    fontWeight: "600",
+                    background:
+                      "linear-gradient(135deg, #FF0F87 0%, #ff2b9e 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
+                  }}
+                >
+                  Add Your Own Character
+                </h2>
+              </div>
+              <div style={{ padding: "32px" }}>
+                <div
+                  style={{
+                    fontSize: "16px",
+                    color: "#F2F2F2",
+                    lineHeight: "1.6",
+                    whiteSpace: "pre-wrap",
+                  }}
+                >
+                  To add your own character, follow these steps:
+                  {"\n\n"}
+                  1. Enter your Eternal AI API Key (get it from
+                  eternalai.org/api/keys)
+                  {"\n"}
+                  2. Enter a character name
+                  {"\n"}
+                  3. Upload or drag & drop a character image
+                  {"\n"}
+                  4. Enter the number of prompts/questions
+                  {"\n"}
+                  5. Enter prompts manually or choose "Prompts" mode (use
+                  prompts from suggestions)
+                  {"\n"}
+                  6. Enter Questions manually or choose "Questions" mode
+                  (generate questions automatically)
+                  {"\n"}
+                  7. Fill in all required fields and click Submit
+                  {"\n\n"}
+                  Your character will be created and available for others to
+                  play!
+                </div>
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  gap: "12px",
+                  justifyContent: "flex-end",
+                  padding: "24px 32px",
+                  borderTop: "1px solid rgba(255, 255, 255, 0.1)",
+                }}
+              >
+                <button
+                  onClick={() => {
+                    setShowWelcomeModal(false);
+                    localStorage.setItem("hasSeenUploadWelcome", "true");
+                  }}
+                  style={{
+                    padding: "14px 48px",
+                    background: "#FF0F87",
+                    border: "1px solid #FF0F87",
+                    borderRadius: "999px",
+                    color: "#F2F2F2",
+                    fontSize: "16px",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                    boxShadow: "0 4px 16px rgba(255, 0, 76, 0.4)",
+                    transition: "all 0.2s",
+                    letterSpacing: "0.01em",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.background = "#ff2b9e";
+                    e.target.style.transform = "translateY(-2px)";
+                    e.target.style.boxShadow =
+                      "0 6px 20px rgba(255, 0, 76, 0.6)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.background = "#FF0F87";
+                    e.target.style.transform = "translateY(0)";
+                    e.target.style.boxShadow =
+                      "0 4px 16px rgba(255, 0, 76, 0.4)";
+                  }}
+                >
+                  OK
+                </button>
               </div>
             </div>
           </div>

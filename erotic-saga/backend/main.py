@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, Form, HTTPException, BackgroundTasks
+from fastapi import FastAPI, UploadFile, Form, HTTPException, BackgroundTasks, Request
 from fastapi.middleware.cors import CORSMiddleware
 from utils.ai_api import call_ai_edit_image, generate_questions
 from utils.file_manager import save_image_file, encode_image_base64, image_to_base64_to_front_end, load_characters, save_characters, UPLOAD_DIR
@@ -17,27 +17,28 @@ app.add_middleware(
     allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"]
-)       
-
-# Memory stores
-GENERATED_IMAGES = []
-CURRENT_QUESTION = 0
+)
 
 
 # ==================== ADMIN PASSWORD AUTHENTICATION API ====================
-@app.post("/api/verify-password")
-async def verify_password(password: str = Form(...)):
+def verify_admin_password(password: str) -> bool:
     """
-    Verify the admin password using the file password_admin.txt
+    Helper function to verify admin password
     """
     file_path = "password_admin.txt"
     try:
         with open(file_path, "r", encoding="utf-8") as f:
             correct_password = f.read().strip()
+        return password.strip() == correct_password
     except FileNotFoundError:
-        return {"valid": False, "message": "⚠️ File password_admin.txt not found!"}
+        return False
 
-    if password.strip() == correct_password:
+@app.post("/api/verify-password")
+async def verify_password(password: str = Form(...)):
+    """
+    Verify the admin password using the file password_admin.txt
+    """
+    if verify_admin_password(password):
         return {"valid": True, "message": "✅ Authentication successful!"}
     else:
         return {"valid": False, "message": "❌ Incorrect password!"}
@@ -65,38 +66,216 @@ async def get_prompts():
 
 
 # ===============================================
-# 🔹 API: Get default background image (base64 data URL)
-# ===============================================
-@app.get("/api/default-background")
-async def get_default_background():
-    """
-    Return default background image as data URL for frontend usage.
-    """
-    bg_path = "default_background.jpg"
-    try:
-        image_data = image_to_base64_to_front_end(bg_path)
-        return {"image": image_data}
-    except Exception as e:
-        print(f"❌ Error reading default background: {e}")
-        return {"image": None}
-
-
-# ===============================================
 # 🔹 API 1: Get all characters
 # ===============================================
 
 @app.get("/api/characters")
-async def get_characters():
+async def get_characters(request: Request, offset: int = 0, platform: str = "desktop"):
     """
-    Return a list of all characters (id, name, original_image, folder)
+    Return a list of characters filtered by status and owner
+    - status == "public" OR (owner == user_id)
+    - Supports pagination with offset parameter
+    - Backend automatically determines limit based on platform (desktop: 10, mobile: 8)
     """
+    # Read x-user-id header
+    user_id = request.headers.get("x-user-id", None)
+    
+    # Determine limit based on platform
+    if platform.lower() == "mobile":
+        limit = 8
+    else:
+        limit = 10  # Default to desktop
+    
     characters = load_characters()
+    
+    # Filter characters: status == "public" OR owner == user_id
+    filtered_characters = []
+    for char in characters:
+        status = char.get("status", "public")  # Default to "public" if status field doesn't exist
+        owner = char.get("owner", "public")  # Default to "public" if owner field doesn't exist
+        
+        if status == "public" or owner == user_id:
+            filtered_characters.append(char)
+    
+    # Apply pagination
+    total = len(filtered_characters)
+    # Calculate how many characters to return (limit or remaining if less)
+    remaining = total - offset
+    actual_limit = min(limit, remaining) if remaining > 0 else 0
+    
+    if actual_limit > 0:
+        filtered_characters = filtered_characters[offset:offset + actual_limit]
+    else:
+        filtered_characters = []
+    
+    # Add image data to each character
+    for char in filtered_characters:
+        img_path = char.get("original_image")
+        if img_path:
+            char["image"] = image_to_base64_to_front_end(img_path)
+
+    return {
+        "characters": filtered_characters,
+        "total": total,
+        "limit": actual_limit,
+        "offset": offset,
+        "platform": platform
+    }
+
+
+# ===============================================
+# 🔹 API: Admin - Get all characters (no filtering)
+# ===============================================
+@app.get("/api/admin/characters")
+async def get_all_characters_admin(request: Request, offset: int = 0, platform: str = "desktop", sort: str = "oldest"):
+    """
+    Return all characters without filtering (admin only)
+    Requires admin password in x-admin-password header
+    Supports pagination with offset parameter
+    Supports sorting with sort parameter: "oldest", "newest", "name_asc", "name_desc"
+    - Backend automatically determines limit based on platform (desktop: 10, mobile: 8)
+    """
+    password = request.headers.get("x-admin-password", None)
+    if not password or not verify_admin_password(password):
+        raise HTTPException(status_code=401, detail="Unauthorized: Invalid admin password")
+    
+    # Determine limit based on platform
+    if platform.lower() == "mobile":
+        limit = 8
+    else:
+        limit = 10  # Default to desktop
+    
+    characters = load_characters()
+    
+    # Apply sorting before pagination
+    if sort == "oldest":
+        # Sort by ID ascending (oldest first)
+        characters = list(characters)
+    elif sort == "newest":
+        # Sort by ID descending (newest first)
+        characters = list(reversed(characters))
+    elif sort == "name_asc":
+        # Sort by name A-Z
+        characters = sorted(characters, key=lambda x: x.get("name", "").lower())
+    elif sort == "name_desc":
+        # Sort by name Z-A
+        characters = sorted(characters, key=lambda x: x.get("name", "").lower(), reverse=True)
+    # If sort is invalid, default to oldest (no change)
+    
+    # Apply pagination after sorting
+    total = len(characters)
+    # Calculate how many characters to return (limit or remaining if less)
+    remaining = total - offset
+    actual_limit = min(limit, remaining) if remaining > 0 else 0
+    
+    if actual_limit > 0:
+        characters = characters[offset:offset + actual_limit]
+    else:
+        characters = []
+    
+    # Add image data to each character
     for char in characters:
         img_path = char.get("original_image")
         if img_path:
             char["image"] = image_to_base64_to_front_end(img_path)
 
-    return characters
+    return {
+        "characters": characters,
+        "total": total,
+        "limit": actual_limit,
+        "offset": offset,
+        "platform": platform,
+        "sort": sort
+    }
+
+
+# ===============================================
+# 🔹 API: Admin - Delete character
+# ===============================================
+@app.delete("/api/admin/characters/{character_id}")
+async def delete_character(character_id: int, request: Request):
+    """
+    Delete a character and its folder (admin only)
+    Requires admin password in x-admin-password header
+    """
+    password = request.headers.get("x-admin-password", None)
+    if not password or not verify_admin_password(password):
+        raise HTTPException(status_code=401, detail="Unauthorized: Invalid admin password")
+    
+    import shutil
+    
+    characters = load_characters()
+    char = next((c for c in characters if c["id"] == character_id), None)
+    
+    if not char:
+        raise HTTPException(status_code=404, detail="Character not found")
+    
+    # Delete the character folder
+    folder_path = char.get("folder")
+    if folder_path and os.path.exists(folder_path):
+        try:
+            shutil.rmtree(folder_path)
+            print(f"✅ Deleted folder: {folder_path}")
+        except Exception as e:
+            print(f"⚠️ Error deleting folder {folder_path}: {e}")
+    
+    # Remove from characters list
+    characters = [c for c in characters if c["id"] != character_id]
+    save_characters(characters)
+    
+    return {"message": f"Character {character_id} deleted successfully"}
+
+
+# ===============================================
+# 🔹 API: Admin - Make character public
+# ===============================================
+@app.put("/api/admin/characters/{character_id}/make-public")
+async def make_character_public(character_id: int, request: Request):
+    """
+    Set character status to "public" (admin only)
+    Requires admin password in x-admin-password header
+    """
+    password = request.headers.get("x-admin-password", None)
+    if not password or not verify_admin_password(password):
+        raise HTTPException(status_code=401, detail="Unauthorized: Invalid admin password")
+    
+    characters = load_characters()
+    char = next((c for c in characters if c["id"] == character_id), None)
+    
+    if not char:
+        raise HTTPException(status_code=404, detail="Character not found")
+    
+    # Update status to "public"
+    char["status"] = "public"
+    save_characters(characters)
+    
+    return {"message": f"Character {character_id} is now public", "character": char}
+
+
+# ===============================================
+# 🔹 API: Admin - Make character private
+# ===============================================
+@app.put("/api/admin/characters/{character_id}/make-private")
+async def make_character_private(character_id: int, request: Request):
+    """
+    Set character status to "private" (admin only)
+    Requires admin password in x-admin-password header
+    """
+    password = request.headers.get("x-admin-password", None)
+    if not password or not verify_admin_password(password):
+        raise HTTPException(status_code=401, detail="Unauthorized: Invalid admin password")
+    
+    characters = load_characters()
+    char = next((c for c in characters if c["id"] == character_id), None)
+    
+    if not char:
+        raise HTTPException(status_code=404, detail="Character not found")
+    
+    # Update status to "private"
+    char["status"] = "private"
+    save_characters(characters)
+    
+    return {"message": f"Character {character_id} is now private", "character": char}
 
 
 
@@ -106,6 +285,7 @@ async def get_characters():
 # =====================================================
 @app.post("/api/upload")
 async def upload(
+    request: Request,
     background_tasks: BackgroundTasks,
     name: str = Form(...),
     api_key: str = Form(...),
@@ -117,6 +297,8 @@ async def upload(
     Receive character information (name, base image, prompts, api_key, questions)
     → Save the new character and generate corresponding images using AI
     """
+    # Read x-user-id header
+    user_id = request.headers.get("x-user-id", None)
     import json
     validated_questions = None
     
@@ -205,7 +387,9 @@ async def upload(
         "id": new_id,
         "name": name,
         "original_image": original_image,
-        "folder": character_folder
+        "folder": character_folder,
+        "owner": user_id if user_id else "No one",
+        "status": "private"  # Default status is private
     }
     characters.append(new_character)
     save_characters(characters)

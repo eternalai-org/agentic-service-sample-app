@@ -1,12 +1,8 @@
 # Erotic Saga - AI Millionaire Quiz Game
 
-An interactive quiz game with the ability to create characters and AIgenerated images.
+An interactive quiz game with the ability to create characters and AI‑generated images.
 
-###  Live Demo
-- Create Eternal AI account and [get your API key](https://docs.eternalai.org/api)
-- Access the app: [Erotic Saga](https://2bf7f0308bcf.ngrok-free.app/)
-
-##  Project Overview
+## 📋 Project Overview
 
 ### Tech Stack
 
@@ -21,9 +17,9 @@ An interactive quiz game with the ability to create characters and AIgenerated i
 2. **Game Mode**: Answer questions to unlock images step by step
 3. **Authentication**: Password-protected admin access
 
-##  How to Run
+## 🚀 How to Run
 
-###  Prerequisites
+### 📋 Prerequisites
 
 - **Node.js** 18+ ([Download](https://nodejs.org/))
 - **Python** 3.8+ ([Download](https://www.python.org/downloads/))
@@ -31,7 +27,7 @@ An interactive quiz game with the ability to create characters and AIgenerated i
 
 ---
 
-##  Development Mode (Recommended)
+## 🚀 Development Mode (Recommended)
 
 Run backend and frontend separately for development.
 
@@ -78,48 +74,48 @@ npm run dev
 
 Frontend will run at: `http://localhost:5173`
 
- **Open browser:** `http://localhost:5173`
+✅ **Open browser:** `http://localhost:5173`
 
- **Note:** Vite proxy is preconfigured to forward API requests from frontend to backend (`/api`  `http://127.0.0.1:8000`).
+⚠️ **Note:** Vite proxy is preconfigured to forward API requests from frontend to backend (`/api` → `http://127.0.0.1:8000`).
 
 ---
 
-##  Project Structure
+## 📁 Project Structure
 
 ```
 Game/
- backend/                    # FastAPI backend
-    main.py                 # Main API endpoints
-    requirements.txt        # Python dependencies
-    characters.json         # Characters list
-    password_admin.txt      # Admin password (current: 123)
-    prompts.json            # Prompt suggestions for images
-    uploads/                # Uploaded images and questions
-       {id}_{name}/        # Folder per character
-          0.jpg           # Original image
-          1.jpg           # AI-generated image 1
-          2.jpg           # AI-generated image 2
-          questions.json  # Character-specific questions
-    utils/
-        ai_api.py           # Eternal AI API integration
-        file_manager.py     # File and base64 helpers
-        question_loader.py  # Load questions from JSON
-
- frontend/                   # React Frontend
-    src/
-       App.jsx             # Routing
-       pages/
-          HomePage.jsx    # Home - choose character
-          UploadPage.jsx  # Admin - create character
-          GamePage.jsx    # Game page
-       main.jsx
-    package.json
-    vite.config.js          # Vite + proxy
+├── backend/                    # FastAPI backend
+│   ├── main.py                 # Main API endpoints
+│   ├── requirements.txt        # Python dependencies
+│   ├── characters.json         # Characters list
+│   ├── password_admin.txt      # Admin password (current: 123)
+│   ├── prompts.json            # Prompt suggestions for images
+│   ├── uploads/                # Uploaded images and questions
+│   │   ├── {id}_{name}/        # Folder per character
+│   │   │   ├── 0.jpg           # Original image
+│   │   │   ├── 1.jpg           # AI-generated image 1
+│   │   │   ├── 2.jpg           # AI-generated image 2
+│   │   │   └── questions.json  # Character-specific questions
+│   └── utils/
+│       ├── ai_api.py           # Eternal AI API integration
+│       ├── file_manager.py     # File and base64 helpers
+│       └── question_loader.py  # Load questions from JSON
+│
+├── frontend/                   # React Frontend
+│   ├── src/
+│   │   ├── App.jsx             # Routing
+│   │   ├── pages/
+│   │   │   ├── HomePage.jsx    # Home - choose character
+│   │   │   ├── UploadPage.jsx  # Admin - create character
+│   │   │   └── GamePage.jsx    # Game page
+│   │   └── main.jsx
+│   ├── package.json
+│   └── vite.config.js          # Vite + proxy
 ```
 
 ---
 
-##  API Endpoints
+## 🎯 API Endpoints
 
 ### 1. Admin Verification
 
@@ -176,18 +172,18 @@ Response: {
 
 ---
 
-##  How to Use
+## 📝 How to Use
 
-###  Admin Mode (Add Character)
+### 🔐 Admin Mode (Add Character)
 
-1. On Home  Click " Add New Character"
+1. On Home → Click "➕ Add New Character"
 2. Enter password: `123` (from `backend/password_admin.txt`)
 3. Fill in:
    - **API Key**: Eternal AI API key
    - **Character Name**
    - **Character Image**: Upload base image
    - **Prompts**: Prompts for AI editing
-4. Click "Submit"  backend will:
+4. Click "Submit" → backend will:
    - Save original image
    - Call Eternal AI API to generate images per prompt
    - Save images into `uploads/{id}_{name}/`
@@ -195,14 +191,14 @@ Response: {
 
 ###  Game Mode (Play)
 
-1. On Home  Click " Start Game"
+1. On Home → Click "🎯 Start Game"
 2. Choose a character
 3. Answer questions to unlock the next image
-4. Finish all to reveal the final image 
+4. Finish all to reveal the final image ✨
 
 ---
 
-##  Configuration
+## ⚙️ Configuration
 
 ### backend (`backend/`)
 
@@ -216,7 +212,7 @@ Response: {
 ### Frontend (`frontend/`)
 
 - **Dev Port**: 5173
-- **Proxy**: `/api`  `http://127.0.0.1:8000`
+- **Proxy**: `/api` → `http://127.0.0.1:8000`
 - **Routing**: React Router
 
 ### Eternal AI Integration
@@ -228,7 +224,7 @@ Response: {
 
 ---
 
-##  Troubleshooting
+## 🔧 Troubleshooting
 
 ### backend doesn't start
 
@@ -266,7 +262,7 @@ pip install -r requirements.txt
 
 ---
 
-##  Dependencies
+## 📦 Dependencies
 
 ### backend (`requirements.txt`)
 
@@ -292,7 +288,7 @@ python-multipart
 
 ---
 
-##  Security Notes
+## 🔐 Security Notes
 
 - `password_admin.txt` stores password in plain text (not suitable for production)
 - CORS allows all origins (lock down in production)
@@ -300,5 +296,4 @@ python-multipart
 
 ---
 
-Made with  using FastAPI + React + Eternal AI
-
+Made with ❤️ using FastAPI + React + Eternal AI
